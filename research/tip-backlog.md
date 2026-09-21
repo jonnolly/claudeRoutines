@@ -1,100 +1,126 @@
 # Tip backlog — ranked
 
-Re-ranked 2026-09-21 after John answered round 1. Ranked by (leverage) ×
-(evidence he isn't doing it) ÷ (effort). Strike items through when delivered.
+Re-ranked 2026-09-21 after round 2. The ranking test that now governs everything:
+**does this subtract from his Monday/Thursday review load, or add to it?** He has
+two office days and two 2-hour remote days. Agent capacity is free; his attention
+is not.
+
+Strike items through when delivered.
 
 ## Tier 1 — next up
 
 1. ~~**Stop being the runtime.** Drain the "ask claude …" queue with a scheduled
-   routine + subagent per task.~~ → delivered as Tip 001, 2026-09-21.
+   routine + subagent per task.~~ → Tip 001, 2026-09-21.
 
-2. **One set of standards, loaded everywhere.** *(next tip)* He has
-   `claudeCodingStandards.md`, doesn't know if anything reads it, and explicitly
-   wants "a standardised way to use claude across all projects … unless otherwise
-   specified". The answer is the memory hierarchy: `~/.claude/CLAUDE.md` loads in
-   **every** session regardless of project; project `CLAUDE.md` and directory-level
-   files layer on top, more specific winning on conflict. So the standards file
-   lives once, is imported by the global file, and each project overrides only what
-   it must. Include: keep it lean (a line earns its place only if removing it would
-   make someone pick the wrong file or command), and the distinction between
-   *stating* a rule and *enforcing* one.
+2. **One set of standards, loaded everywhere.** *(next tip)* `~/.claude/CLAUDE.md`
+   loads in every session regardless of project; project and directory files layer
+   on top, more specific winning. So `claudeCodingStandards.md` lives once, the
+   global file imports it, projects override only what they must. Keep it lean: a
+   line earns its place only if removing it would make someone pick the wrong file
+   or command.
 
 3. **Make the verification loop run, not just be written.** His standards already
-   say reproduce → test → fix → verify. A document is a hope; a skill is a
-   mechanism. Package it so every session applies the same checks. This is the
-   single most-cited 2026 practice. Deliver right after #2 — they're two halves.
+   specify reproduce → test → fix → verify. A document is a hope; a skill is a
+   mechanism. **This is the highest-value tip in the list for him specifically**,
+   because it is the one thing that directly shrinks Thursday's review pile: work
+   that has checked itself needs less of him. Deliver immediately after #2.
 
-4. **Documentation that updates itself.** *(new — his own top pain point)* Confluence
-   pages at New Electric go stale because nobody remembers to update them after a
-   change. He has the Atlassian MCP connector already. Shape: a routine that takes
-   the week's merged changes and flags or drafts the Confluence updates they imply,
-   rather than trying to auto-publish silently. Start with *detecting* staleness —
-   pages whose subject changed and page didn't — before writing anything back.
+4. **Widen the Tue/Wed hand-off from one lane to several.** He already plans tasks
+   on his remote days, hands them to Claude, and reviews in the office — and says
+   it works. The upgrade is not a new habit, it's throughput: several independent
+   tasks handed off per remote day instead of one, each in its own context, each
+   arriving pre-verified. Pair with #3 so widening doesn't multiply his reading.
 
-5. **Consolidating Confluence + BookStack without breaking BookStack.**
-   *(new)* `https://wiki.newelectric.ovh/shelves`, abandoned by the software team,
-   still load-bearing for other teams. The tip is the safe pattern: agent produces
-   an *inventory and overlap map* first (what exists where, what's duplicated, what's
-   contradictory, what only exists in BookStack), then a migration proposal with
-   BookStack left read-only in place. Never a bulk move. Gate on round-2 question 3.
+5. **A better hand-off spec.** The other half of #4. Two remote hours is a small
+   window to specify work in; what he writes on Tuesday determines what he reads on
+   Thursday. Cover: what a task must contain to survive unattended execution, how
+   to say what "done" means, and when to insist on a plan before any edit.
 
-6. **Async before concurrent.** *(new — answers his question 3 directly)* He has
-   never run two Claudes at once. Given a 3.5-day contract, conservatoire days and
-   gigs, the win for him is work happening *while he is elsewhere*, not four
-   worktrees competing for an attention he doesn't have. Parallelism converts his
-   time into review time — and review time is exactly what he's short of. Sequence:
-   subagents for context isolation → background/async tasks → worktrees only if a
-   project ever genuinely needs two independent edits at once.
+6. **Automate the out-of-date half of the TickTick tidy.** *(promoted — he costed
+   it)* 5 minutes to 1.5 hours a day, mostly rescheduling stale tasks; he estimates
+   partial automation gets it to ~15 minutes. At the top of the range that is the
+   biggest single block of time any tip here can return. Scope it to the mechanical
+   part only — surfacing overdue items, proposing reschedules, catching misfiring
+   recurrence rules, flagging duplicates (≈40 copies of one recurring task exist) —
+   and leave the judgement calls to him.
 
-## Tier 2 — multi-agent material, once #6 has landed
+## Tier 2 — New Electric: the weekly meeting complex
 
-7. **Subagents for bounded, noisy work.** `.claude/agents/<name>.md`, YAML
-   frontmatter, scoped tools, isolated context, only the summary returns. Right for
-   research sweeps, test runs, audits.
+These four are one programme, not four tips. Sequence them.
 
-8. **Choose the parallel mode from the failure you're preventing.** Context overload
-   → subagent; file collision → worktree; coverage across many areas → teams.
-   Stops him buying worktrees for a context problem.
+7. **Revive the NESL board as the source of the weekly ball.** The board is dead —
+   tasks get added when someone remembers, never reviewed. An agent can groom it
+   into something a 10-minute meeting slot can actually work from: deduplicate,
+   age-sort, break the big items into week-sized pieces.
 
-9. **Git worktrees.** 4–8 concurrent per developer is what teams report working in
-   2026; past that the bottleneck is review. Frame honestly for a solo, time-poor dev.
+8. **Break long-term goals into week-sized tasks, one owner per week.** His own
+   design: "who has the ball this week?", a physical ball on a desk, returned to the
+   middle table by the next meeting. The scaffolding he's missing is the generator —
+   something that takes a long-term goal (CI improvements first) and keeps producing
+   the next genuinely achievable weekly slice.
 
-10. **Assign roles deliberately** (implementer / reviewer / sceptic) — he named roles
-    as an interest. Best demonstrated with an adversarial reviewer on his own diff.
+9. **A vision worth looking at.** He asked for this directly: the motivating picture
+   is currently "a google doc… which is very dry." Build it — but the content must
+   come from him. Needs the current doc, or 20 minutes of him talking. Never invent
+   New Electric's roadmap. Candidate for a published artifact the team opens each
+   week, ideally showing live progress rather than a static poster.
 
-11. **Agent teams / dynamic workflows.** Parallel instances coordinating through a
-    shared git workspace. Hold until he's comfortable with 7–9; flag token cost.
+10. **A meeting agenda that assembles itself.** Once 7–9 exist, the weekly meeting
+    prep becomes: what moved, whose ball it was, what the board says, what's next.
 
-## Tier 3 — reliability, cost, craft
+## Tier 3 — documentation
 
-12. **Hooks as guardrails** — deterministic enforcement that doesn't rely on the
-    model remembering. The tier above CLAUDE.md. Natural successor to #2 and #3.
-13. **Plan mode before any edit.** The five-minute tip; hold in reserve for a week
-    where the big tips aren't landing.
-14. **Token efficiency is the real cost lever** — fewer retries, stronger first
-    passes. His spend is expensed, so argue it in time, not money.
-15. **Trust calibration.** Only ~29–46% of developers trust AI output; 46–68% report
+11. **Structure first, in the empty space.** `NE_EMBEDDED_SOFTWARE_LIBRARY` is
+    completely unused — a greenfield Confluence space is the safest possible place
+    to prove a documentation structure before touching `Software Development`,
+    `CAT_330z_Battery` or `NEP_006_HX70`, which are in active use but poorly
+    organised. Demonstrate there, then migrate.
+
+12. **Documentation that notices it has gone stale.** Work repos are on GitHub and
+    he wants them wired to Confluence so a code change that invalidates a page
+    updates it. Start with **detection** — pages whose subject changed and whose
+    text didn't — before anything writes. **Blocked**: this session's GitHub access
+    covers only `jonnolly/claudeRoutines`; the work repos need access granted.
+
+13. **BookStack consolidation.** Inventory and overlap map first, migration proposal
+    second, BookStack left read-only in place for the teams still using it. Never a
+    bulk move. **Blocked** on API access — the responsible colleague is on holiday;
+    John has a task to ask next week.
+
+## Tier 4 — reliability, craft, held in reserve
+
+14. **Hooks as guardrails** — deterministic enforcement that doesn't depend on the
+    model remembering. The tier above CLAUDE.md; natural successor to #2 and #3.
+15. **Subagents for bounded, noisy work** — isolated context, only the summary returns.
+16. **Choose the parallel mode from the failure you're preventing.** Context overload
+    → subagent; file collision → worktree; coverage → teams.
+17. **Git worktrees** — only if a project genuinely needs two independent edits at
+    once. Teams report 4–8 per developer; for him the review ceiling binds first.
+18. **Assign roles deliberately** (implementer / reviewer / sceptic).
+19. **Plan mode before any edit.** The five-minute tip; reserve for a week where the
+    larger tips aren't landing.
+20. **Context transfer between sessions** — ending a session so the next starts warm.
+    Fits his fragmented week exactly.
+21. **Trust calibration** — ~29–46% of developers trust AI output; 46–68% report
     quality problems. The teams who do well have checks, not faith.
-16. **Context transfer between sessions** — ending a session so the next starts warm.
-    Fits his short, scattered work windows.
-17. **Spec-driven work for anything non-trivial** — the productivity/reliability
-    paradox: speed gains evaporate without specification discipline.
+22. **Spec-driven work** — speed gains evaporate without specification discipline.
+23. **Token efficiency** — fewer retries, stronger first passes. Argue it in time.
 
-## Tier 4 — personal, life, learning
+## Tier 5 — personal, life, learning
 
-18. **A practice-plan agent that remembers.** He keeps asking for jazz piano plans
-    ad hoc ("scales / chords", "minor, melodic minor"). Make it persistent, with his
-    level, repertoire and lesson feedback, so plans compound instead of restarting.
-19. **The CBT / reflection profile he already wanted**, as a persistent project with
-    the gratitude journal and goal reviews as context — not a fresh chat each time.
-20. **Decision-support for the big open questions** — mortgage, retirement,
+24. **Claude as mentoring support** for the colleague he's covering on Tue/Wed —
+    onboarding notes, worked examples, review explanations that teach rather than
+    just correct. Reduces a recurring load nobody has costed.
+25. **A practice-plan agent that remembers** — jazz piano plans that compound
+    instead of restarting each time.
+26. **The CBT / reflection profile**, persistent, with the gratitude journal and
+    goal reviews as context.
+27. **Decision support for the big open questions** — mortgage, retirement,
     Maastricht vs. Utrecht. One maintained document beats twelve restarted chats.
-21. **The two-account TickTick problem.** Parked at his request. Revisit if round-2
-    question 1 comes back with a real number. Note: moving work to Todoist would
-    likely break the cross-account inbox bridge he relies on — flag that before he
-    does it, not after.
-22. **Job-hunt agent** for the 1.5 free days: standing brief, sources, weekly
-    shortlist. Turns a recurring task he keeps re-creating into output.
+28. **Job-hunt agent** for the free days: standing brief, sources, weekly shortlist.
+29. **The two-account TickTick problem.** Revisit only if #6 doesn't get him to ~15
+    minutes. Warn before any Todoist move: it would likely break the cross-account
+    inbox bridge he relies on and uses heavily.
 
 ## Answered inline, not worth a tip
 

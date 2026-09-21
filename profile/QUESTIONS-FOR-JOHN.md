@@ -23,22 +23,36 @@ All seven answered. Folded into the profile. Summary of what changed:
    `🧔Work to Personal Inbox` is personal.
 7. **Delivery** → yes, also drop the tip into TickTick, in `💼Personal to Work Inbox`.
 
-## Round 2 — open
+## Round 2 — asked 2026-09-21, ANSWERED 2026-09-21 ✅
 
-1. **How much time does the daily TickTick tidy actually cost you?** You called it
-   low priority "unless I'm wasting a lot of time every day". A rough number
-   decides whether the two-account problem gets solved or stays parked.
-2. **Which Confluence spaces matter?** For the doc-freshness work: which spaces or
-   page trees are the ones that hurt when they go stale, and does the software team
-   own them?
-3. **Does the BookStack wiki have an API token you could give a script?** It changes
-   whether consolidation is "an agent does it" or "an agent makes you a plan".
-4. **Do your work repos live on GitHub too**, and would you want Claude to have
-   access to them — or should everything work-side stay on the Jira/Confluence
-   connectors only?
-5. **What does a typical week actually look like** — which days are New Electric,
-   which are conservatoire, where do the 1.5 free days land? Timing tips to your
-   real calendar matters more than the tips themselves.
+1. **TickTick tidy cost** → 5 min to 1.5 hours a day, mostly rescheduling
+   out-of-date tasks; ~15 min if partly automated. → Promoted to tier 1.
+2. **Confluence** → `Software Development`, `CAT_330z_Battery`, `NEP_006_HX70`
+   active but poorly structured; `NE_EMBEDDED_SOFTWARE_LIBRARY` unused and
+   promising. Plus: the NESL Jira board is dead, and the weekly software meeting is
+   his own pick for highest-value area to improve.
+3. **BookStack API** → pending; colleague on holiday, he'll ask next week.
+4. **Work repos on GitHub** → yes, and he wants them connected so Confluence pages
+   update when code changes make them stale.
+5. **Week shape** → 2.5 days: Mon & Thu in office, 2 remote hours Tue & Wed. He
+   already plans tasks, hands them to Claude, reviews next office day — and it
+   works. This reshaped the whole backlog.
+
+## Round 3 — open
+
+1. **The vision board (tier 2, item 9).** You asked for something visually pretty to
+   replace the dry Google doc. I can build it — but the content has to be yours.
+   Paste the Google doc, or spend twenty minutes telling me what the long-term
+   goals actually are, and say go.
+2. **Who else is in the weekly software meeting**, and how long is it? The ball
+   ritual only works if the weekly slice is sized to the room.
+3. **Which CI improvements** are the long-term goals you'd start the ball with?
+   Naming two or three makes item 8 concrete instead of theoretical.
+4. **Work GitHub access.** Which org/repos, and are you able to grant Claude access
+   to them? Item 12 is blocked without it.
+5. **How much of your Monday/Thursday actually goes on reviewing Claude's work**
+   from the remote days? If it's already heavy, hardening (tips 2, 3, 5) comes
+   before widening (tip 4).
 
 ## Answer log
 
