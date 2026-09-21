@@ -32,3 +32,13 @@ fetch them before presenting anything as an exact Anthropic recommendation.
 - Build your second brain with Claude Code & Obsidian — https://www.whytryai.com/p/claude-code-obsidian
 - claude-obsidian (self-organising vault agent) — https://github.com/AgriciDaniel/claude-obsidian
 - Obsidian + Claude knowledge management setup 2026 — https://www.buildmvpfast.com/blog/obsidian-claude-ai-knowledge-management-system-2026
+
+## Added 2026-09-21 (round 1 follow-up)
+
+- Claude Code memory: global vs project CLAUDE.md — https://raythanni.substack.com/p/claude-code-memory-files-global-vs
+- Claude Code memory explained (2026) — https://blog.memoryplugin.com/claude-code-memory/
+- Claude Code memory / persistence guide — https://vectorize.io/articles/claude-code-memory
+- `/add-dir` announcement — https://x.com/_catwu/status/1950288312033562751
+- `--add-dir` reference — https://claudelog.com/faqs/--add-dir/
+- Multi-directory & monorepo setup — https://heyclau.de/entry/guides/multi-directory-setup
+- Claude Code with monorepos — https://phosailabs.com/blog/claude-code-monorepos
