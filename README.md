@@ -15,5 +15,7 @@ actually works, and biased toward things he is *not already doing*.
 | `profile/QUESTIONS-FOR-JOHN.md` | Open questions; answers get folded back into the profile. |
 | `tips/INDEX.md` | Ledger of every tip delivered. Never repeat one. |
 | `tips/` | Full text of each day's tip. |
+| `routines/` | Routine prompts written for John to schedule. |
+| `state/claude-tag.md` | What the `@claude` tag means and what carries it. |
 | `research/tip-backlog.md` | Ranked candidate tips, pre-researched, so mornings are fast. |
 | `research/sources.md` | Source list behind the backlog. |

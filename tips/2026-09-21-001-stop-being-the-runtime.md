@@ -37,7 +37,7 @@ Let the queue drain itself.
    - find open tasks tagged `@claude`;
    - run **each one as its own subagent**, so six unrelated questions (mortgage,
      jazz albums, ADHD notes) never bleed into each other's context;
-   - write each answer back as a **comment on the task**, leaving the task open;
+   - write each answer back onto the task, leaving the task open;
    - notify once: *"3 answers waiting."*
 3. **Keep the close.** Deliberately do not let it complete the tasks. You still
    decide what was useful — you just stop being the one who presses go.
@@ -72,3 +72,19 @@ conversation.
 Tag three tasks `@claude` — the jazz-albums one, the habits-planning one, and the
 savings spreadsheet — then ask Claude to write the routine. Twenty minutes, and
 by tomorrow morning three things you've been carrying since June are answered.
+
+---
+
+## Follow-up, same day
+
+Tagged: 58 of 435 open tasks now carry `@claude` — see `state/claude-tag.md` for
+the rule and the exclusions.
+
+Routine written: `routines/claude-task-drain.md`.
+
+**One design correction.** This tip said the answer would come back as a *comment*.
+TickTick comments are plain text capped at **1024 characters** — far too small for
+a mortgage comparison or a funding-options answer. The routine therefore appends
+the answer to the **task body** below a dated separator, leaving his own text
+untouched above it, and uses a second tag (`@claude-answered`) to track state.
+Comments are kept for the short "I need something from you" case, which fits.
