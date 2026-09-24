@@ -24,32 +24,45 @@ Confidence tags: **[obs]** = directly observed, **[inf]** = inferred, **[ask]** 
 
 - **Daily, multi-device.** ~28 Claude.ai magic-link sign-ins in 60 days, across the Electron
   desktop app and Firefox. Logs in most working days, sometimes 3–4x/day. **[obs]**
-- **Ships real software with it.** `✂Trace Trimmer` — a GUI tool that trims CAN log trace
-  files, with a toolbar, update mechanism, startup-time budget, and parsers for vendor
-  formats ("insight can converter"). This is a genuine internal tool serving his day job. **[obs]**
-- **Writes spec-grade prompts.** His TickTick task bodies read like well-formed Claude
-  prompts — exact file-name grammar, worked examples, acceptance criteria. He is already
-  well above average at prompting. **[obs]**
+- ~~Ships real software with it: Trace Trimmer~~ — **DEAD. Confirmed 2026-09-24:** built once
+  as an edge application and forgotten. Do not use as an example again. The `❤Gratitude Journal`
+  app is likewise a personal side project, not leverage-relevant. **[confirmed]**
+- **Writes spec-grade prompts.** Even in a dead project, his task bodies read like well-formed
+  briefs — exact file-name grammar, worked examples, acceptance criteria, explicit stop
+  conditions. He is well above average at specifying work. This is his biggest latent asset
+  and Tip 002 is built on it. **[obs]**
 - **Has a `@claude` tag** in TickTick to mark tasks he intends to hand to Claude. **[obs]**
 - **Runs scheduled Claude routines**, including a morning email review (this tip rides on
   that slot). **[obs, from the routine brief]**
 - Follows AI news via **TLDR newsletter** (reads the Opus 5.5 / GPT-6 issues). So he gets
   model news already — he does *not* need me to relay model launches. **[obs]**
 
+## ⚠ Visibility gap (the single biggest limit on this routine)
+
+**Everything I can see in TickTick is his PERSONAL system.** His actual work tasks live in a
+separate work TickTick account I cannot read — only the `💼Personal to Work Inbox` bridge
+project leaks through. Confirmed by him 2026-09-24.
+
+Consequence: my read on his money-making work comes almost entirely from **email traffic**
+(New Electric, EV fast-charge diagnostics, customer/vendor threads). Treat any claim about his
+work priorities as low-confidence until this is fixed.
+
+**He is migrating work → Todoist** specifically so this routine can see it. Doist ships an
+official MCP server (github.com/Doist/todoist-mcp), so once migrated, work tasks become
+readable and writable. Until then, bias tips toward things that don't depend on knowing his
+work backlog. **[confirmed]**
+
 ## Observed gaps / leverage hypotheses
 
 Ranked by expected payoff. Each becomes a candidate daily tip.
 
-1. **Requirements live in prose, not in executable gates.** His own Trace Trimmer task says:
-   *"Make a rule that will definitely see whenever I start claude in this folder that the
-   start-time must always be under 1 second. Test this each time you make a change... you
-   must keep trying until you do fulfill this requirement."* That is a CLAUDE.md rule + a
-   check script + a hook, hand-rolled as English. Highest-value fix. **[obs]** → Tip 001
+1. **Requirements live in prose, not in executable gates.** Principle stands and still applies
+   to any live project; the Trace Trimmer example it was illustrated with is dead. **[obs]** → Tip 001
 2. **No evidence of CLAUDE.md / .claude/ config** in his projects. **[inf]** **[ask]**
 3. **No evidence of subagents or parallel worktrees** — likely single-threaded sessions. **[inf]** **[ask]**
-4. **Backlog decay**: `💻Remote Work` and `✂Trace Trimmer` tasks were last touched Oct 2025
-   and are ~11 months stale, while the underlying work (trace files, income) is still live
-   in Sep 2026 mail. Suggests capture is good, follow-through is the bottleneck. **[obs]**
+4. **Backlog decay**: projects last touched Oct 2025, ~11 months stale. Capture is strong,
+   follow-through is the bottleneck. Relevant to the Todoist migration: a straight 1:1 port
+   would carry a year of dead weight across. **[obs]** → Tip 002
 5. **Re-auth friction**: signing in via emailed magic link several times a day is minutes/week
    of pure friction. Low value but trivially fixable. **[obs]**
 6. **Freelance funnel is manual** — Upwork applications, CV, LinkedIn all sit as undone
