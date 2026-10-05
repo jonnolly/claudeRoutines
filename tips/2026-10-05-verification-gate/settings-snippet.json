@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/verify_startup.py\"",
+            "timeout": 60,
+            "statusMessage": "Checking startup budget..."
+          }
+        ]
+      }
+    ]
+  }
+}
