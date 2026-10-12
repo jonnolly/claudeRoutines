@@ -1,0 +1,267 @@
+<title>Morning Check-in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: single column of 4 short steps; task groups as open lists with 3-way segmented pickers; sticky save bar */
+:root{
+  --bg:#eef1f5; --surface:#fff; --ink:#14202e; --muted:#5b6878; --line:#d5dce5;
+  --accent:#e4572e; --accent-ink:#fff; --ok:#1f8a5b; --warn:#b7791f; --sel:#14202e; --sel-ink:#fff;
+  --display:'Schibsted Grotesk',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1620; --surface:#18222e; --ink:#e8edf3; --muted:#93a1b3; --line:#2b3948;
+  --accent:#ff7a52; --accent-ink:#1a0d07; --ok:#4cc794; --warn:#e5b04f; --sel:#e8edf3; --sel-ink:#0f1620; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1620; --surface:#18222e; --ink:#e8edf3; --muted:#93a1b3; --line:#2b3948;
+  --accent:#ff7a52; --accent-ink:#1a0d07; --ok:#4cc794; --warn:#e5b04f; --sel:#e8edf3; --sel-ink:#0f1620; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);font-size:16px;line-height:1.45}
+.wrap{max-width:46rem;margin:0 auto;padding-inline:16px;padding-block:24px 7rem}
+h1{font-size:clamp(1.9rem,6vw,2.6rem);font-weight:800;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.date{font-family:var(--mono);font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.lede{color:var(--muted);margin:.4rem 0 0;max-width:60ch}
+section{margin-top:2rem;display:grid;gap:.75rem}
+h2{font-size:1.15rem;margin:0;display:flex;gap:.6rem;align-items:baseline;flex-wrap:wrap}
+h2 small{font-family:var(--mono);font-weight:400;font-size:.75rem;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:.6rem}
+label.q{font-weight:600}
+textarea,input[type=text],select{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem}
+textarea{min-height:4.5rem;resize:vertical}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{color:var(--muted);font-size:.88rem;margin:0}
+.opts{display:flex;flex-wrap:wrap;gap:.5rem}
+.opts label{border:1px solid var(--line);border-radius:999px;padding:.35rem .8rem;cursor:pointer;background:var(--bg);font-size:.92rem}
+.opts input{position:absolute;opacity:0;pointer-events:none}
+.opts label:has(input:checked){background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
+.opts label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.group{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ghead{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.ghead b{font-size:1rem}
+.bulk{display:flex;gap:.35rem;align-items:center;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+button{font:inherit;cursor:pointer}
+.bulk button{font-family:var(--mono);font-size:.72rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:.2rem .5rem}
+.task{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.4rem .8rem;padding:10px 16px;border-top:1px solid var(--line);align-items:center}
+.task:first-of-type{border-top:0}
+.tt{min-width:0;overflow-wrap:anywhere}
+.tt.sub{padding-left:1rem;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.15rem}
+.tag{font-family:var(--mono);font-size:.68rem;border-radius:4px;padding:.05rem .4rem;border:1px solid var(--line);color:var(--muted)}
+.tag.p1{color:var(--accent);border-color:var(--accent)}
+.tag.over{color:var(--warn);border-color:var(--warn)}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg label{padding:.3rem .6rem;font-size:.82rem;cursor:pointer;border-left:1px solid var(--line);background:var(--bg);white-space:nowrap}
+.seg label:first-child{border-left:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--sel);color:var(--sel-ink)}
+.seg label:has(input[value=today]:checked){background:var(--accent);color:var(--accent-ink)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+@media(max-width:34rem){.task{grid-template-columns:1fr}}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.barin{max-width:46rem;margin:0 auto;display:flex;gap:.8rem;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.count{font-family:var(--mono);font-size:.85rem}
+.count.hi{color:var(--warn)}
+.go{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:.65rem 1.2rem;font-weight:700}
+.go[disabled]{opacity:.6}
+.status{font-size:.88rem;color:var(--muted)}
+.status.ok{color:var(--ok)}
+.promise{font-size:.88rem;color:var(--muted);border-left:3px solid var(--ok);padding-left:.7rem}
+</style>
+
+<div class="wrap">
+  <div class="date" id="date"></div>
+  <h1>Morning check-in</h1>
+  <p class="lede">About 10 minutes. Four steps. Nothing is deleted, archived or moved by this form. Your answers are saved and applied when tomorrow's check-in runs, and anything you leave blank stays exactly where it is.</p>
+
+  <section>
+    <h2>1 · Today <small>one minute</small></h2>
+    <div class="card">
+      <label class="q" for="focus">If only one thing gets done today, what is it?</label>
+      <input type="text" id="focus" placeholder="e.g. Jenkins PR review">
+      <div class="q">How is your capacity today?</div>
+      <div class="opts" id="cap">
+        <label><input type="radio" name="cap" value="low">Low, 3 tasks</label>
+        <label><input type="radio" name="cap" value="normal" checked>Normal, 5 tasks</label>
+        <label><input type="radio" name="cap" value="high">High, 8 tasks</label>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2 · Overdue pile <small id="overN"></small></h2>
+    <div class="card">
+      <p class="hint" id="overHint"></p>
+      <div class="q">One decision for the whole pile that you don't mark below:</div>
+      <div class="opts" id="over">
+        <label><input type="radio" name="over" value="keep" checked>Leave overdue for now</label>
+        <label><input type="radio" name="over" value="week">Spread over this week</label>
+        <label><input type="radio" name="over" value="nextweek">Move to next Monday</label>
+        <label><input type="radio" name="over" value="review">Show me this pile again tomorrow</label>
+      </div>
+      <p class="hint">Reschedule only changes dates. Recurring tasks keep their repeat.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>3 · Pick per task <small>Today / This week / Later (unchanged)</small></h2>
+    <p class="hint">Tap the buttons on each group to mark them all at once, then adjust single tasks. Unmarked tasks are left untouched.</p>
+    <div id="groups"></div>
+  </section>
+
+  <section>
+    <h2>4 · Don't lose this <small>optional</small></h2>
+    <div class="card">
+      <label class="q" for="remind">Anything I must remind you about, with when?</label>
+      <textarea id="remind" placeholder="e.g. Friday: send invoices to Shahbaz"></textarea>
+      <label class="q" for="new">New tasks or ideas on your mind?</label>
+      <textarea id="new" placeholder="I'll add these to Todoist"></textarea>
+      <label class="q" for="block">Anything blocking you?</label>
+      <textarea id="block" placeholder="Waiting on someone, missing info..."></textarea>
+    </div>
+    <div class="promise">Tomorrow I'll show what you marked "Today" but didn't finish first, so nothing slips unnoticed.</div>
+  </section>
+</div>
+
+<div class="bar"><div class="barin">
+  <div><div class="count" id="count"></div><div class="status" id="status" role="status"></div></div>
+  <button class="go" id="save" type="button">Save my day</button>
+</div></div>
+
+<script>
+const DATE="2026-10-12";
+const TODAY=DATE;
+const PROJECTS={
+  hx70:"🦛 HX70", cat:"😺 CAT 330z", mill:"🚊 Mill W150Fi", ci:"🏭 Continuous Integration",
+  house:"🧹 Housekeeping", inbox:"Inbox", tt:"TickTick"
+};
+// src: td = Todoist, tt = TickTick. due is the date the tool reports.
+const TASKS=[
+ {id:"6hjgjP9pXc6X7833",p:"hx70",t:"Jenkins PR",due:"2026-10-12",pr:1},
+ {id:"6hjgjP93GCg5R6f3",p:"hx70",t:"HX90 PR Request 14",due:"2026-09-28",pr:2},
+ {id:"6hjgjP9W3CWCMwG3",p:"hx70",t:"Pull request: \"This is what claude says: the two timers do different jobs\"",due:"2026-09-28",lbl:"NextSession"},
+ {id:"6hjgjP9rgfp753j3",p:"hx70",t:"NEP6-4: Rogier mentioned you; blocked waiting for a start signal from Jorge",due:"2026-09-28"},
+ {id:"6hjgjPCw57PMrw9V",p:"hx70",t:"Clean HX70 tasks so Rogier can pick them up",due:"2026-10-01",lbl:"Blocker"},
+
+ {id:"6hjgmQ7VXMxWX29j",p:"cat",t:"Release a SOH version for the CAT",due:"2026-09-30",pr:1,lbl:"CurrentSession"},
+ {id:"6hjgmQ6xhpjF96HC",p:"cat",t:"Isolation monitor: code review",due:"2026-09-28"},
+ {id:"6hjgmQ7Xxw86pj7j",p:"cat",t:"Frank code review: used energy (NEP6-33)",due:"2026-09-28"},
+ {id:"6hjgmQ85xRGQmR8C",p:"cat",t:"Frank code review: null check errors",due:"2026-09-28"},
+ {id:"6hjgmQ8VmFF5p76j",p:"cat",t:"Frank code review: temperature sensor",due:"2026-09-28"},
+ {id:"6hjgmQ8p3wmXXWXj",p:"cat",t:"Review Claude SonarQube fixes (library PR 53)",due:"2026-09-28",lbl:"PullRequests"},
+
+ {id:"6hjgjgR32x3pg77f",p:"mill",t:"Mill MRS project setup",due:"2026-10-12"},
+ {id:"6hjgjgV8gqF6VVMf",p:"mill",t:"Mill unit test setup",due:"2026-10-12"},
+
+ {id:"6hjgjxgWPmGCPRJq",p:"ci",t:"Update the software meeting template",due:"2026-09-28",pr:2},
+ {id:"6hjgjxgx5RcFxMrH",p:"ci",t:"Add the Software Future Requirements to the Library Jira",due:"2026-09-28",pr:2},
+ {id:"6hjgjxhgmmMc4fFq",p:"ci",t:"HX90 pull request 15",due:"2026-09-28",pr:2},
+ {id:"6hjgjxm8h7XJ4h9q",p:"ci",t:"HX90_HVAC pull request 2",due:"2026-09-28",pr:2},
+ {id:"6hjgjxhmGc7RVcqq",p:"ci",t:"Update the In Progress items on the All Projects Jira board",due:"2026-09-28"},
+ {id:"6hjgjxgvHcRfmpGH",p:"ci",t:"Add label onto the plant \"Carlijn the Continuous Integration Money Tree\"",due:"2026-09-28"},
+ {id:"6hjgjxjjXrHR3Vfq",p:"ci",t:"Do we have any UDS parameters linked to machine functionality?",due:"2026-09-28"},
+ {id:"6hjgjxhh6jmWGgqq",p:"ci",t:"Ask Jorgy about giving Claude access to BookStack (consolidate onto Confluence)",due:"2026-09-28"},
+ {id:"6hjgjxjXq8XGp8mq",p:"ci",t:"Set up new laptop",due:"2026-09-28"},
+ {id:"6hjgjxrcC9QggpFH",p:"ci",t:"After files have copied",due:"2026-09-28",sub:1},
+ {id:"6hjgm29wP4r7WvPq",p:"ci",t:"Auto-update to expansion",due:"2026-09-28",pr:1,sub:1},
+ {id:"6hjgjxm9hv9grq3q",p:"ci",t:"Migrate from old laptop",due:"2026-09-28"},
+ {id:"6hjgjxhG3F2jpxCq",p:"ci",t:"Switch to Todoist for work account so Claude can clean it up",due:"2026-09-28"},
+ {id:"6hjgjxgqw3C5jw3H",p:"ci",t:"Claude task automation",due:"2026-09-28"},
+ {id:"6hjgjxvXvPpcRJ4q",p:"ci",t:"Switch to Todoist",due:"2026-09-28",pr:2,sub:1},
+ {id:"6hjgjxwHxHvvvqHq",p:"ci",t:"Find a way to have Personal-to-Work / Work-to-Personal inbox",due:"2026-09-28",sub:1},
+ {id:"6hjgjxrCcXwp765H",p:"ci",t:"Get Claude to check Todoist instead",due:"2026-09-28",sub:1},
+ {id:"6hjgjxjh8W8Q2R2q",p:"ci",t:"Re-jig holidays so Monday 15 June is sick leave",due:"2026-09-28"},
+ {id:"6hjgjxhrHPXrjmfH",p:"ci",t:"If we got paid, buy PCAN Explorer 7",due:"2026-10-12"},
+
+ {id:"6hjgj9WqhH8fCC57",p:"house",t:"Send invoices to Shahbaz",due:"2026-10-01",pr:3,rec:"monthly"},
+ {id:"6hjgj9Vvg2gcGfXf",p:"house",t:"Log extra time (26 Aug 2h, 3 Sep 3.5h, 17 Sep 1h)",due:"2026-09-28"},
+ {id:"6hjgj9Vjmmxj5jrf",p:"house",t:"Bring laptop home",due:"2026-10-02",rec:"Fridays"},
+ {id:"6X5hG8CVQV9jR2m9",p:"inbox",t:"Plan the week ahead (15 min weekly review)",due:"2026-09-25",rec:"Fridays"},
+
+ {id:"tt:6ac7c1d7ed08310b91c12688",p:"tt",t:"Process ideas and questions from the package meeting",due:"2026-10-12"}
+];
+const $=s=>document.querySelector(s);
+const state={picks:{}};
+const draftKey="checkin-draft-"+DATE;
+function load(){try{return JSON.parse(localStorage.getItem(draftKey)||"null")}catch(e){return null}}
+function persist(){try{localStorage.setItem(draftKey,JSON.stringify(collect()))}catch(e){}}
+function fmt(d){return new Date(d+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"})}
+function daysOver(d){return Math.round((new Date(TODAY)-new Date(d))/864e5)}
+$("#date").textContent=new Date(TODAY+"T12:00").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+const overdue=TASKS.filter(t=>t.due<TODAY);
+$("#overN").textContent=overdue.length+" tasks";
+$("#overHint").textContent=overdue.length+" tasks are overdue, most since 28 Sep. They are still all there. Pick the few that matter below and set one rule for the rest.";
+
+const gEl=$("#groups");
+Object.keys(PROJECTS).forEach(pk=>{
+  const items=TASKS.filter(t=>t.p===pk); if(!items.length) return;
+  const g=document.createElement("div"); g.className="group";
+  g.innerHTML=`<div class="ghead"><b>${PROJECTS[pk]} <span class="tag">${items.length}</span></b>
+    <div class="bulk">all:<button type="button" data-g="${pk}" data-v="today">Today</button><button type="button" data-g="${pk}" data-v="week">Week</button><button type="button" data-g="${pk}" data-v="">Clear</button></div></div>`;
+  items.forEach(t=>{
+    const row=document.createElement("div"); row.className="task";
+    const tags=[];
+    if(t.pr===1) tags.push('<span class="tag p1">P1</span>');
+    else if(t.pr) tags.push(`<span class="tag">P${t.pr}</span>`);
+    if(t.due<TODAY) tags.push(`<span class="tag over">${daysOver(t.due)}d overdue</span>`);
+    else tags.push('<span class="tag">due today</span>');
+    if(t.rec) tags.push(`<span class="tag">repeats ${t.rec}</span>`);
+    if(t.lbl) tags.push(`<span class="tag">${t.lbl}</span>`);
+    const n="pick-"+t.id;
+    row.innerHTML=`<div class="tt ${t.sub?'sub':''}">${t.sub?'↳ ':''}${t.t.replace(/</g,"&lt;")}<div class="meta">${tags.join("")}</div></div>
+      <div class="seg" role="radiogroup" aria-label="${t.t.replace(/"/g,"'")}">
+        <label><input type="radio" name="${n}" value="today" data-id="${t.id}">Today</label>
+        <label><input type="radio" name="${n}" value="week" data-id="${t.id}">Week</label>
+        <label><input type="radio" name="${n}" value="" data-id="${t.id}" checked>Leave</label>
+      </div>`;
+    g.appendChild(row);
+  });
+  gEl.appendChild(g); gEl.appendChild(Object.assign(document.createElement("div"),{style:"height:.75rem"}));
+});
+
+function setPick(id,v){
+  const r=document.querySelector(`input[name="pick-${id}"][value="${v}"]`); if(r) r.checked=true;
+}
+function collect(){
+  const picks={};
+  document.querySelectorAll('.seg input:checked').forEach(i=>{ if(i.value) picks[i.dataset.id]=i.value; });
+  return {date:DATE,picks,
+    capacity:(document.querySelector('input[name=cap]:checked')||{}).value,
+    overdueRule:(document.querySelector('input[name=over]:checked')||{}).value,
+    focus:$("#focus").value, remind:$("#remind").value, newTasks:$("#new").value, blockers:$("#block").value,
+    shown:TASKS.map(t=>t.id)};
+}
+function restore(d){
+  if(!d) return;
+  Object.entries(d.picks||{}).forEach(([id,v])=>setPick(id,v));
+  const r=(n,v)=>{const e=document.querySelector(`input[name=${n}][value="${v}"]`); if(e) e.checked=true};
+  if(d.capacity) r("cap",d.capacity); if(d.overdueRule) r("over",d.overdueRule);
+  $("#focus").value=d.focus||""; $("#remind").value=d.remind||""; $("#new").value=d.newTasks||""; $("#block").value=d.blockers||"";
+}
+function limit(){return {low:3,normal:5,high:8}[(document.querySelector('input[name=cap]:checked')||{}).value]||5}
+function update(){
+  const n=Object.values(collect().picks).filter(v=>v==="today").length;
+  const c=$("#count"); c.textContent=`Today: ${n} of ${limit()}`; c.classList.toggle("hi",n>limit());
+  persist();
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".bulk button"); if(!b) return;
+  TASKS.filter(t=>t.p===b.dataset.g).forEach(t=>setPick(t.id,b.dataset.v)); update();
+});
+document.addEventListener("input",update);
+document.addEventListener("change",update);
+restore(load()); update();
+
+let db=null;
+claude.use("db").then(d=>{db=d}).catch(()=>{});
+$("#save").addEventListener("click",async()=>{
+  const st=$("#status"), btn=$("#save"); const data={...collect(),savedAt:new Date().toISOString()};
+  btn.disabled=true; st.className="status"; st.textContent="Saving...";
+  try{
+    if(!db) db=await claude.use("db");
+    if(!db) throw new Error("not signed in");
+    await db.doc("checkins/"+DATE).set(data);
+    st.className="status ok"; st.textContent="Saved. Nothing has been changed in Todoist yet. See you tomorrow.";
+  }catch(err){
+    st.textContent="Could not save ("+(err&&err.message||"error")+"). Your answers are kept in this browser; tap Save again.";
+  }finally{btn.disabled=false}
+});
+</script>
