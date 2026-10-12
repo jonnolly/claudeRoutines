@@ -114,7 +114,7 @@ function isFocus(id){return st.focus.indexOf(id)>-1}
 function render(){
   var done=saved.saved;
   var h='<header><div class="eyebrow">'+DATA.dayName+' '+DATA.date+'</div><h1>Morning planner</h1><p class="lede">Four short steps, about ten minutes. Nothing is deleted, completed or archived. Tasks only change date, and only the ones you choose.</p>';
-  if(done)h+='<p class="status" style="margin-top:10px">Last saved '+esc(saved.savedAt)+'. Changes are applied to Todoist by Claude.</p>';
+  if(done)h+='<p class="status" style="margin-top:10px">Last saved '+esc(saved.savedAt)+'. '+esc(saved.result||'')+'</p>';
   h+='</header>';
   // Step 1
   h+='<section><div class="eyebrow">Step 1 of 4</div><h2>How is today?</h2><div class="pick" role="radiogroup" aria-label="Energy">';
@@ -199,7 +199,7 @@ function finalState(){
   sync();
   var plan=[];
   DATA.tasks.forEach(function(t){var a=effective(t);if(a!=="leave")plan.push({id:t.id,title:t.t,action:a,date:DATES[a]})});
-  return {saved:true,savedAt:new Date().toISOString(),answers:st,plan:plan,applied:false};
+  return {saved:true,savedAt:new Date().toISOString(),answers:st,plan:plan,applied:false,capturedOnce:false};
 }
 function build(stateObj){
   var sty=document.getElementById("sty").textContent;
@@ -210,15 +210,53 @@ function build(stateObj){
   var reset=document.documentElement.getAttribute("data-reset")||"";
   return "<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>"+head+link+"<style id=\"sty\">"+sty+"</style><main id=\"app\"></main><div class=\"bar\"><span class=\"sum\" id=\"sum\"></span><button id=\"save\" type=\"button\">Save and apply to Todoist</button></div><script id=\"state\" type=\"application/json\">"+json+"</"+"script><script id=\"code\">"+code+"</"+"script></body></html>";
 }
+function errText(e){
+  var c=e&&e.code;
+  if(c==="needs_reauth")return "Reconnect Todoist in claude.ai Settings > Connectors, then save again.";
+  if(c==="server_not_connected"||c==="selection_required")return "Add the Todoist connector in claude.ai Settings > Connectors, then save again.";
+  if(c==="not_in_manifest"||c==="consent_required")return "Todoist access was not allowed for this page. Allow it and save again.";
+  if(c==="blocked_by_policy")return "Your organisation blocks this Todoist action.";
+  if(c==="tool_error")return "Todoist refused the change: "+(e.message||"unknown reason");
+  return "Todoist did not confirm ("+(c||"error")+"). Some changes may have applied; saving again is safe.";
+}
+async function applyToTodoist(s){
+  var mcp=await window.claude.use("mcp");
+  if(!mcp)return {ok:false,reason:"nomcp"};
+  var moved=0,added=0;
+  for(var i=0;i<s.plan.length;i+=25){
+    var chunk=s.plan.slice(i,i+25).map(function(p){return {id:p.id,date:p.date}});
+    await mcp.callTool("Todoist","reschedule-tasks",{tasks:chunk});
+    moved+=chunk.length;
+  }
+  var lines=(s.answers.capture||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);
+  if(lines.length&&!s.capturedOnce){
+    await mcp.callTool("Todoist","add-tasks",{tasks:lines.slice(0,25).map(function(l){return {content:l,projectId:"inbox"}})});
+    added=lines.length;
+  }
+  return {ok:true,moved:moved,added:added};
+}
 document.getElementById("save").addEventListener("click",async function(){
-  var b=this;b.disabled=true;b.textContent="Saving...";
+  var b=this;b.disabled=true;b.textContent="Applying to Todoist...";
+  var s=finalState();
+  var msg=document.getElementById("sum");
   try{
+    var r=await applyToTodoist(s);
+    if(r.ok){s.applied=true;s.appliedAt=new Date().toISOString();s.result="Moved "+r.moved+" tasks, added "+r.added+" to Inbox."}
+    else{s.result="Todoist connector unavailable here; Claude will apply this on its next run."}
+  }catch(e){
+    b.disabled=false;b.textContent="Retry save";
+    msg.textContent=errText(e);
+    return;
+  }
+  try{
+    b.textContent="Saving...";
     var a=await window.claude.use("artifact");
     if(!a)throw new Error("unavailable");
-    await a.publish(build(finalState()));
+    await a.publish(build(s));
   }catch(e){
-    b.disabled=false;b.textContent="Save failed, tap to retry";
-    if(e&&e.code==="conflict")b.textContent="Page changed, reloading...";
+    b.disabled=false;
+    b.textContent=s.applied?"Applied. Tap to store answers":"Save failed, tap to retry";
+    msg.textContent=s.applied?"Todoist is updated. Storing your answers failed; tap to try again.":"Could not save.";
   }
 });
 render();
