@@ -1,0 +1,226 @@
+<title>Morning Planner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style id="sty">
+/* Layout: single narrow column, numbered-by-purpose steps, sticky save bar at the bottom */
+:root{
+  --bg:#f3f5f8; --card:#ffffff; --fg:#14213a; --muted:#5c6a82; --line:#d9dfe9;
+  --accent:#1f5eff; --accent-fg:#ffffff; --focus:#fff3d6; --focus-line:#e0a526;
+  --good:#1b8a5a; --warn:#b4531a;
+  --display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1624; --card:#17213a; --fg:#e8edf7; --muted:#9aa8c2; --line:#2a3858;
+  --accent:#6b94ff; --accent-fg:#0b1226; --focus:#3a2f10; --focus-line:#e0a526;
+  --good:#4cc790; --warn:#f0a068; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1624; --card:#17213a; --fg:#e8edf7; --muted:#9aa8c2; --line:#2a3858;
+  --accent:#6b94ff; --accent-fg:#0b1226; --focus:#3a2f10; --focus-line:#e0a526;
+  --good:#4cc790; --warn:#f0a068; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;margin:0;padding-inline:16px;padding-block:24px 110px}
+main{max-width:760px;margin-inline:auto;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--display);font-size:2rem;line-height:1.1;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.2rem;margin:0;text-wrap:balance}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);margin:6px 0 0;max-width:62ch}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.hint{color:var(--muted);font-size:.88rem;margin:0}
+.row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);min-width:0}
+.row:first-of-type{border-top:0}
+.row.is-focus{background:var(--focus);box-shadow:inset 3px 0 0 var(--focus-line);padding-left:10px;border-radius:4px}
+.row .t{flex:1;min-width:0}
+.row .t b{font-weight:600;overflow-wrap:anywhere}
+.meta{font-family:var(--mono);font-size:.72rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:2px}
+.late{color:var(--warn)}
+.p1{color:#d1242f;font-weight:500}
+.rec{color:var(--good)}
+input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:var(--accent);flex:none}
+select,textarea,input[type=number]{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+textarea{width:100%;min-height:84px;resize:vertical;box-sizing:border-box}
+select{max-width:100%}
+.proj{display:flex;flex-direction:column;gap:6px}
+.projhead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:2px solid var(--line)}
+.projhead h3{margin:0;font-family:var(--display);font-size:1rem}
+.projhead label{font-size:.85rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick label{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+.pick input{margin:0;width:16px;height:16px}
+.counter{font-family:var(--mono);font-size:.85rem}
+.counter.over{color:var(--warn)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.bar .sum{font-size:.88rem;color:var(--muted)}
+button{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-fg);border:0;border-radius:8px;padding:10px 20px;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.done{border-color:var(--good)}
+.status{font-family:var(--mono);font-size:.82rem}
+.safety{font-size:.85rem;color:var(--good);margin:0}
+</style>
+
+<main id="app"></main>
+<div class="bar"><span class="sum" id="sum"></span><button id="save" type="button">Save and apply to Todoist</button></div>
+
+<script id="state" type="application/json">{"saved":false}</script>
+<script id="code">
+(function(){
+var DATA = {
+  date: "2026-10-12", dayName: "Monday",
+  tasks: [
+    {id:"6hjgjP9pXc6X7833",t:"Jenkins PR",p:"HX70",due:"2026-10-12",pri:1},
+    {id:"6hjgjgR32x3pg77f",t:"Mill MRS project setup",p:"Mill W150Fi",due:"2026-10-12",pri:4},
+    {id:"6hjgjgV8gqF6VVMf",t:"Mill Unit test setup",p:"Mill W150Fi",due:"2026-10-12",pri:4},
+    {id:"6hjgjxhrHPXrjmfH",t:"If we got paid, buy PCAN Explorer 7",p:"Continuous Integration",due:"2026-10-12",pri:4},
+    {id:"6hjgmQ7VXMxWX29j",t:"Release a SOH version for the CAT",p:"CAT 330z",due:"2026-09-30",pri:1},
+    {id:"6hjgmQ6xhpjF96HC",t:"Isolation monitor - code review",p:"CAT 330z",due:"2026-09-28",pri:3},
+    {id:"6hjgmQ7Xxw86pj7j",t:"Frank code review of used energy",p:"CAT 330z",due:"2026-09-28",pri:3},
+    {id:"6hjgmQ85xRGQmR8C",t:"Frank code review null check errors",p:"CAT 330z",due:"2026-09-28",pri:3},
+    {id:"6hjgmQ8VmFF5p76j",t:"Frank code review temperature sensor",p:"CAT 330z",due:"2026-09-28",pri:3},
+    {id:"6hjgmQ8p3wmXXWXj",t:"Review Claude SonarQube fixes",p:"CAT 330z",due:"2026-09-28",pri:4},
+    {id:"6hjgjP93GCg5R6f3",t:"HX90 PR Request 14",p:"HX70",due:"2026-09-28",pri:2},
+    {id:"6hjgjP9W3CWCMwG3",t:"Pull request: \"This is what claude says: the two timers...\"",p:"HX70",due:"2026-09-28",pri:4},
+    {id:"6hjgjP9rgfp753j3",t:"NEP6-4: blocked, waiting for a start signal from Jorge",p:"HX70",due:"2026-09-28",pri:4},
+    {id:"6hjgjPCw57PMrw9V",t:"Clean HX70 tasks so Rogier can pick them up",p:"HX70",due:"2026-10-01",pri:4},
+    {id:"6hjgjxgWPmGCPRJq",t:"Update the software meeting template",p:"Continuous Integration",due:"2026-09-28",pri:2},
+    {id:"6hjgjxgx5RcFxMrH",t:"Add the Software Future Requirements to the Library Jira",p:"Continuous Integration",due:"2026-09-28",pri:2},
+    {id:"6hjgjxhgmmMc4fFq",t:"Pull request 15 (HX90)",p:"Continuous Integration",due:"2026-09-28",pri:2},
+    {id:"6hjgjxm8h7XJ4h9q",t:"Pull request 2 (HX90_HVAC)",p:"Continuous Integration",due:"2026-09-28",pri:2},
+    {id:"6hjgjxgvHcRfmpGH",t:"Add label onto the plant \"Carlijn the Continuous Integration Money Tree\"",p:"Continuous Integration",due:"2026-09-28",pri:3},
+    {id:"6hjgjxhmGc7RVcqq",t:"Update the \"In Progress\" items on All Projects Jira board",p:"Continuous Integration",due:"2026-09-28",pri:3},
+    {id:"6hjgjxjjXrHR3Vfq",t:"Any UDS parameters linked to machine functionality?",p:"Continuous Integration",due:"2026-09-28",pri:3},
+    {id:"6hjgjxhG3F2jpxCq",t:"Switch to Todoist for work account so Claude can clean it up",p:"Continuous Integration",due:"2026-09-28",pri:3},
+    {id:"6hjgjxjXq8XGp8mq",t:"Set up new laptop",p:"Continuous Integration",due:"2026-09-28",pri:3},
+    {id:"6hjgjxm9hv9grq3q",t:"Migrate from old laptop",p:"Continuous Integration",due:"2026-09-28",pri:3},
+    {id:"6hjgjxjh8W8Q2R2q",t:"Re-jig holidays so Monday 15 June is sick leave",p:"Continuous Integration",due:"2026-09-28",pri:3},
+    {id:"6hjgjxgqw3C5jw3H",t:"Claude task automation",p:"Continuous Integration",due:"2026-09-28",pri:4},
+    {id:"6hjgjxhh6jmWGgqq",t:"Ask Jorgy about giving Claude access to the BookStack",p:"Continuous Integration",due:"2026-09-28",pri:4},
+    {id:"6hjgjgR32x3pg77f_x",skip:true},
+    {id:"6hjgj9Vvg2gcGfXf",t:"Log extra time (26 Aug, 3 Sep, 17 Sep)",p:"Housekeeping",due:"2026-09-28",pri:4},
+    {id:"6hjgj9WqhH8fCC57",t:"Send invoices to Shahbaz",p:"Housekeeping",due:"2026-10-01",pri:3,rec:"monthly"},
+    {id:"6hjgj9Vjmmxj5jrf",t:"Bring laptop home",p:"Housekeeping",due:"2026-10-02",pri:4,rec:"every Friday"},
+    {id:"6X5hG8CVQV9jR2m9",t:"Plan the week ahead (15 min)",p:"Inbox",due:"2026-09-25",pri:4,rec:"every Friday"}
+  ].filter(function(x){return !x.skip})
+};
+var ACTIONS=[["leave","Leave as is"],["today","Today"],["tomorrow","Tomorrow"],["friday","This Friday"],["nextmon","Next Monday"],["twoweeks","In two weeks"]];
+var DATES={today:"2026-10-12",tomorrow:"2026-10-13",friday:"2026-10-16",nextmon:"2026-10-19",twoweeks:"2026-10-26"};
+var saved={saved:false};
+try{saved=JSON.parse(document.getElementById("state").textContent)||{saved:false}}catch(e){}
+var st=saved.answers||{focus:[],acts:{},bulk:{},energy:"normal",hours:6,capture:"",notes:"",tomorrow:""};
+var app=document.getElementById("app");
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function isLate(t){return t.due<DATA.date}
+function groups(){var g={},o=[];DATA.tasks.forEach(function(t){if(!g[t.p]){g[t.p]=[];o.push(t.p)}g[t.p].push(t)});return o.map(function(n){return [n,g[n]]})}
+function isFocus(id){return st.focus.indexOf(id)>-1}
+function render(){
+  var done=saved.saved;
+  var h='<header><div class="eyebrow">'+DATA.dayName+' '+DATA.date+'</div><h1>Morning planner</h1><p class="lede">Four short steps, about ten minutes. Nothing is deleted, completed or archived. Tasks only change date, and only the ones you choose.</p>';
+  if(done)h+='<p class="status" style="margin-top:10px">Last saved '+esc(saved.savedAt)+'. Changes are applied to Todoist by Claude.</p>';
+  h+='</header>';
+  // Step 1
+  h+='<section><div class="eyebrow">Step 1 of 4</div><h2>How is today?</h2><div class="pick" role="radiogroup" aria-label="Energy">';
+  [["low","Low energy"],["normal","Normal"],["high","Sharp"]].forEach(function(e){h+='<label><input type="radio" name="energy" value="'+e[0]+'"'+(st.energy===e[0]?' checked':'')+'>'+e[1]+'</label>'});
+  h+='</div><label>Focused hours available <input type="number" id="hours" min="0" max="12" step="0.5" value="'+esc(st.hours)+'" style="width:5em"></label></section>';
+  // Step 2
+  h+='<section><div class="eyebrow">Step 2 of 4</div><h2>Pick today\'s focus (aim for 5 or fewer)</h2><p class="hint">Tick the tasks that are today. Everything else stays where you put it in step 3.</p><div class="counter" id="counter"></div><div id="focuslist">';
+  var sorted=DATA.tasks.slice().sort(function(a,b){return (a.pri-b.pri)||(a.due<b.due?-1:1)});
+  sorted.forEach(function(t){h+=row(t,true)});
+  h+='</div></section>';
+  // Step 3
+  h+='<section><div class="eyebrow">Step 3 of 4</div><h2>Everything else: where should it go?</h2><p class="hint">Set a whole project at once, then change single tasks if you want. Overdue items are never dropped; "Leave as is" keeps them overdue and visible.</p>';
+  groups().forEach(function(g){
+    var n=g[0];
+    h+='<div class="proj"><div class="projhead"><h3>'+esc(n)+' <span class="eyebrow">'+g[1].length+' tasks</span></h3><label>All non-focus tasks here: <select data-bulk="'+esc(n)+'">';
+    ACTIONS.forEach(function(a){h+='<option value="'+a[0]+'"'+((st.bulk[n]||"leave")===a[0]?' selected':'')+'>'+a[1]+'</option>'});
+    h+='</select></label></div>';
+    g[1].forEach(function(t){h+=row(t,false)});
+    h+='</div>';
+  });
+  h+='</section>';
+  // Step 4
+  h+='<section><div class="eyebrow">Step 4 of 4</div><h2>Anything to add or remember?</h2>';
+  h+='<label for="capture"><b>New tasks to capture</b> <span class="hint">(one per line, goes to your Inbox)</span></label><textarea id="capture">'+esc(st.capture)+'</textarea>';
+  h+='<label for="notes"><b>Blockers or notes for Claude</b> <span class="hint">(e.g. waiting on someone, what slipped, what to prioritise)</span></label><textarea id="notes">'+esc(st.notes)+'</textarea>';
+  h+='<label for="tomorrow"><b>Reminder for tomorrow morning</b></label><textarea id="tomorrow">'+esc(st.tomorrow)+'</textarea>';
+  h+='<p class="safety">Reminders you write here are kept and shown at the top of tomorrow\'s planner.</p></section>';
+  if(saved.carry&&saved.carry.length){}
+  app.innerHTML=h;
+  wire();update();
+}
+function row(t,focusMode){
+  var f=isFocus(t.id);
+  if(!focusMode&&f)return '';
+  var late=isLate(t);
+  var meta='<span class="'+(late?'late':'')+'">'+(late?'overdue since ':'due ')+t.due+'</span>';
+  if(t.pri===1)meta+='<span class="p1">P1</span>';else if(t.pri===2)meta+='<span>P2</span>';
+  if(t.rec)meta+='<span class="rec">repeats '+t.rec+'</span>';
+  if(focusMode)meta+='<span>'+esc(t.p)+'</span>';
+  var h='<div class="row'+(f&&focusMode?' is-focus':'')+'" data-row="'+t.id+'">';
+  if(focusMode)h+='<input type="checkbox" data-focus="'+t.id+'"'+(f?' checked':'')+' id="f_'+t.id+'" aria-label="Today: '+esc(t.t)+'">';
+  h+='<div class="t"><b>'+esc(t.t)+'</b><div class="meta">'+meta+'</div></div>';
+  if(!focusMode){
+    var cur=st.acts[t.id]||st.bulk[t.p]||"leave";
+    h+='<select data-act="'+t.id+'" aria-label="Move '+esc(t.t)+'">';
+    ACTIONS.forEach(function(a){h+='<option value="'+a[0]+'"'+(cur===a[0]?' selected':'')+'>'+a[1]+'</option>'});
+    h+='</select>';
+  }
+  return h+'</div>';
+}
+function wire(){
+  app.querySelectorAll("[data-focus]").forEach(function(c){c.addEventListener("change",function(){
+    var id=c.getAttribute("data-focus"),i=st.focus.indexOf(id);
+    if(c.checked&&i<0)st.focus.push(id);if(!c.checked&&i>-1)st.focus.splice(i,1);
+    sync();render();window.scrollTo(window.scrollX,window.scrollY);
+  })});
+  app.querySelectorAll("[data-bulk]").forEach(function(s){s.addEventListener("change",function(){
+    var p=s.getAttribute("data-bulk");st.bulk[p]=s.value;
+    DATA.tasks.forEach(function(t){if(t.p===p)delete st.acts[t.id]});
+    sync();render();
+  })});
+  app.querySelectorAll("[data-act]").forEach(function(s){s.addEventListener("change",function(){st.acts[s.getAttribute("data-act")]=s.value;sync();update()})});
+  ["hours","capture","notes","tomorrow"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){sync();update()})});
+  app.querySelectorAll("[name=energy]").forEach(function(r){r.addEventListener("change",sync)});
+}
+function sync(){
+  st.hours=document.getElementById("hours").value;
+  st.capture=document.getElementById("capture").value;
+  st.notes=document.getElementById("notes").value;
+  st.tomorrow=document.getElementById("tomorrow").value;
+  var e=app.querySelector("[name=energy]:checked");if(e)st.energy=e.value;
+}
+function effective(t){return isFocus(t.id)?"today":(st.acts[t.id]||st.bulk[t.p]||"leave")}
+function update(){
+  var c=document.getElementById("counter");
+  if(c){c.textContent="Today: "+st.focus.length+" / 5";c.className="counter"+(st.focus.length>5?" over":"")}
+  var moved=DATA.tasks.filter(function(t){return effective(t)!=="leave"}).length;
+  var late=DATA.tasks.filter(function(t){return isLate(t)&&effective(t)==="leave"}).length;
+  document.getElementById("sum").textContent=st.focus.length+" for today, "+moved+" moving, "+late+" overdue left as is";
+}
+function finalState(){
+  sync();
+  var plan=[];
+  DATA.tasks.forEach(function(t){var a=effective(t);if(a!=="leave")plan.push({id:t.id,title:t.t,action:a,date:DATES[a]})});
+  return {saved:true,savedAt:new Date().toISOString(),answers:st,plan:plan,applied:false};
+}
+function build(stateObj){
+  var sty=document.getElementById("sty").textContent;
+  var code=document.getElementById("code").textContent;
+  var head=document.querySelector("title").outerHTML;
+  var link=document.querySelector("link[rel=stylesheet]").outerHTML;
+  var json=JSON.stringify(stateObj).replace(/</g,"\\u003c");
+  var reset=document.documentElement.getAttribute("data-reset")||"";
+  return "<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>"+head+link+"<style id=\"sty\">"+sty+"</style><main id=\"app\"></main><div class=\"bar\"><span class=\"sum\" id=\"sum\"></span><button id=\"save\" type=\"button\">Save and apply to Todoist</button></div><script id=\"state\" type=\"application/json\">"+json+"</"+"script><script id=\"code\">"+code+"</"+"script></body></html>";
+}
+document.getElementById("save").addEventListener("click",async function(){
+  var b=this;b.disabled=true;b.textContent="Saving...";
+  try{
+    var a=await window.claude.use("artifact");
+    if(!a)throw new Error("unavailable");
+    await a.publish(build(finalState()));
+  }catch(e){
+    b.disabled=false;b.textContent="Save failed, tap to retry";
+    if(e&&e.code==="conflict")b.textContent="Page changed, reloading...";
+  }
+});
+render();
+})();
+</script>
