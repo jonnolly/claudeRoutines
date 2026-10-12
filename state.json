@@ -1,0 +1,10 @@
+{
+  "routine": "daily-ai-tip",
+  "last_run": "2026-10-12",
+  "tips_delivered": [1],
+  "next_tip": 2,
+  "questions_asked": ["Q1", "Q2"],
+  "questions_answered": [],
+  "profile_confirmed_by_john": false,
+  "notes": "First run. Profile derived from TickTick + Gmail + repo state, not yet confirmed. Re-read profile/ and backlog/ before each run; re-rank tips with any new evidence; fold answers into the profile and retire the question."
+}
