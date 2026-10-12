@@ -1,0 +1,362 @@
+<title>Morning Run-Through</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column, five numbered steps with a time budget, sticky progress strip, save bar at the end. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #16222e;
+  --muted: #5a6a7a;
+  --line: #d3dae1;
+  --accent: #0b6e8a;
+  --accent-soft: #dcedf2;
+  --accent-ink: #ffffff;
+  --p1: #c23b3b;
+  --p2: #b45309;
+  --ok: #1f7a4d;
+  --ok-soft: #dcf0e5;
+  --f-display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e151c; --surface: #16202a; --ink: #e5ebf0; --muted: #93a3b3; --line: #2a3745;
+    --accent: #5bbad6; --accent-soft: #17323d; --accent-ink: #08212b;
+    --p1: #ef7c7c; --p2: #e6a15a; --ok: #6cd09b; --ok-soft: #153325;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e151c; --surface: #16202a; --ink: #e5ebf0; --muted: #93a3b3; --line: #2a3745;
+  --accent: #5bbad6; --accent-soft: #17323d; --accent-ink: #08212b;
+  --p1: #ef7c7c; --p2: #e6a15a; --ok: #6cd09b; --ok-soft: #153325;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 0 96px; }
+.wrap { max-width: 760px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 2.1rem; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; font-weight: 700; }
+h3 { font-size: 1.02rem; font-weight: 700; }
+p { margin: 0; }
+.mono { font-family: var(--f-mono); }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.label { font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+header { padding-block: 28px 4px; display: flex; flex-direction: column; gap: 10px; }
+.promise { background: var(--ok-soft); color: var(--ink); border-left: 4px solid var(--ok); padding: 10px 14px; border-radius: 4px; font-size: 0.92rem; }
+
+.strip { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; border-bottom: 1px solid var(--line); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.strip a { font-family: var(--f-mono); font-size: 0.78rem; text-decoration: none; color: var(--muted); padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.strip a.done { color: var(--ok); border-color: var(--ok); }
+.strip .budget { margin-left: auto; font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); }
+
+section.step { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 64px; }
+.step-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.step-head .n { font-family: var(--f-mono); color: var(--accent); font-size: 0.85rem; }
+.step-head .t { margin-left: auto; font-family: var(--f-mono); font-size: 0.75rem; color: var(--muted); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chips label { border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; background: var(--bg); font-size: 0.92rem; }
+.chips input:checked + label { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chips input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+textarea, input[type="text"] { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 11px; resize: vertical; }
+textarea:focus-visible, input:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.task { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+.task:first-of-type { border-top: 0; }
+.task input[type="checkbox"] { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); }
+.task .body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.task .ttl { overflow-wrap: anywhere; font-weight: 500; }
+.task .meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.8rem; color: var(--muted); }
+.pill { font-family: var(--f-mono); font-size: 0.7rem; padding: 0 6px; border-radius: 3px; border: 1px solid currentColor; }
+.pill.p1 { color: var(--p1); } .pill.p2 { color: var(--p2); }
+.pill.late { color: var(--p1); border-color: transparent; background: transparent; padding: 0; }
+.fixed { display: flex; gap: 10px; align-items: baseline; padding: 10px 12px; background: var(--accent-soft); border-radius: 6px; font-size: 0.92rem; }
+.count { font-family: var(--f-mono); font-size: 0.85rem; padding: 8px 12px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); }
+.count.over { border-color: var(--p2); color: var(--p2); }
+
+.group { border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.group-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.group details summary { cursor: pointer; font-size: 0.85rem; color: var(--accent); padding-block: 2px; }
+.group ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.group li { display: flex; gap: 8px; align-items: baseline; font-size: 0.88rem; }
+.group li .ttl { overflow-wrap: anywhere; min-width: 0; }
+.group li.sub { padding-left: 18px; }
+.group li.picked { opacity: 0.5; text-decoration: line-through; }
+.quick { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; cursor: pointer; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 6px 12px; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 10px 20px; }
+button:disabled { opacity: 0.6; cursor: default; }
+
+.savebar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.savebar .in { max-width: 760px; margin-inline: auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.savebar .msg { flex: 1; min-width: 160px; font-size: 0.88rem; }
+.savebar .msg.ok { color: var(--ok); }
+.savebar .msg.err { color: var(--p1); }
+#fallback { display: none; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="label" id="dateLabel">Monday 12 October 2026</span>
+    <h1>Morning Run-Through</h1>
+    <p class="muted">Five short steps, about 12 minutes. Your answers are saved and used to build tomorrow's page.</p>
+    <p class="promise">Nothing is deleted, archived or hidden by this page. "Leave as is" is always the default, and anything you move stays visible with a new date.</p>
+  </header>
+
+  <nav class="strip" aria-label="Steps">
+    <a href="#s1" data-s="1">1 Today</a><a href="#s2" data-s="2">2 Picks</a><a href="#s3" data-s="3">3 Overdue</a><a href="#s4" data-s="4">4 Coming up</a><a href="#s5" data-s="5">5 Notes</a>
+    <span class="budget" id="budget">0 / 12 min</span>
+  </nav>
+
+  <section class="step" id="s1">
+    <div class="step-head"><span class="n">1</span><h2>How much day do you have?</h2><span class="t">1 min</span></div>
+    <div>
+      <p class="label">Focused time available</p>
+      <div class="chips" id="capChips"></div>
+    </div>
+    <div>
+      <p class="label">Energy</p>
+      <div class="chips" id="energyChips"></div>
+    </div>
+    <div>
+      <label class="label" for="mustNot">What must not slip today?</label>
+      <textarea id="mustNot" rows="2" placeholder="e.g. Jenkins PR needs to be reviewed before Rogier starts"></textarea>
+    </div>
+  </section>
+
+  <section class="step" id="s2">
+    <div class="step-head"><span class="n">2</span><h2>Pick today's tasks</h2><span class="t">3 min</span></div>
+    <p class="muted small">Ticked items are my suggestions: due today, or p1 and long overdue. Untick or add whatever you like. Anything you don't finish is carried to tomorrow's page automatically.</p>
+    <div class="count" id="count"></div>
+    <div id="todayList"></div>
+    <div class="fixed"><span class="mono small">21:00</span><span>Evening check-in on Our Week (fixed, repeats daily, not counted above)</span></div>
+  </section>
+
+  <section class="step" id="s3">
+    <div class="step-head"><span class="n">3</span><h2>Overdue, in bulk</h2><span class="t">5 min</span></div>
+    <p class="muted small">Almost everything here has been overdue since 28 September. One answer per group moves every task in it. Recurring tasks keep their repeat pattern. Open a group to see exactly what is in it.</p>
+    <div class="quick">
+      <span class="label">Same answer for every group:</span>
+      <button type="button" data-all="keep">Leave as is</button>
+      <button type="button" data-all="split">Important this week, rest next week</button>
+      <button type="button" data-all="review">Go one by one</button>
+    </div>
+    <div id="groups" style="display:flex;flex-direction:column;gap:14px"></div>
+  </section>
+
+  <section class="step" id="s4">
+    <div class="step-head"><span class="n">4</span><h2>Coming up this week</h2><span class="t">2 min</span></div>
+    <p class="muted small">Tick what you want pinned to the top of each day's page until it has happened.</p>
+    <div id="upcoming"></div>
+    <div class="task" style="border-top:1px solid var(--line)">
+      <input type="checkbox" id="samStep1" aria-labelledby="samLbl">
+      <div class="body"><span class="ttl" id="samLbl">I have decided what to ask Sam for (step 1 of the WFH conversation)</span><span class="meta">Thursday's conversation depends on this. Leave unticked and I will bring step 1 back to the top.</span></div>
+    </div>
+  </section>
+
+  <section class="step" id="s5">
+    <div class="step-head"><span class="n">5</span><h2>Anything else?</h2><span class="t">1 min</span></div>
+    <div>
+      <label class="label" for="free">Tell Claude anything</label>
+      <textarea id="free" rows="3" placeholder="New tasks, things to remember, changes to how this page works…"></textarea>
+    </div>
+    <div>
+      <p class="label">Length of tomorrow's run-through</p>
+      <div class="chips" id="lenChips"></div>
+    </div>
+    <div id="fallback">
+      <p class="small muted">Saving to the shared store is not available in this view. Copy these answers and paste them to Claude instead.</p>
+      <textarea id="fallbackOut" rows="6" readonly></textarea>
+    </div>
+  </section>
+</div>
+
+<div class="savebar"><div class="in">
+  <span class="msg" id="msg">Answers save when you press Save. You can come back and change them.</span>
+  <button class="primary" id="save" type="button">Save my day</button>
+</div></div>
+
+<script>
+const DATE = "2026-10-12";
+const CAPS = [["2h","About 2 hours"],["4h","About 4 hours"],["6h","About 6 hours"],["8h","Full day"]];
+const CAP_MAX = {"2h":3,"4h":4,"6h":5,"8h":6};
+const ENERGY = [["low","Low"],["ok","Normal"],["high","High"]];
+const LEN = [["same","Same as today"],["short","Shorter (5 min)"],["long","More detail"]];
+
+/* src: td = Todoist, tt = TickTick */
+const TODAY = [
+  {id:"6hjgjP9pXc6X7833",src:"td",t:"Jenkins PR",proj:"HX70",pri:1,due:"due today",why:"p1, due today",pre:1},
+  {id:"6hjgmQ7VXMxWX29j",src:"td",t:"Release a SOH version for the CAT",proj:"CAT 330z",pri:1,due:"due 30 Sep",late:12,why:"p1, 12 days overdue",pre:1},
+  {id:"6hjgjgR32x3pg77f",src:"td",t:"Mill MRS project setup",proj:"Mill W150Fi",pri:4,due:"due today",why:"in progress",pre:1},
+  {id:"6ac7c1d7ed08310b91c12688",src:"tt",pid:"68ac8bcae2bebe00c8e800c2",t:"Process ideas & questions from package meeting",proj:"Personal to Work Inbox",pri:4,due:"due today",why:"photo from Thursday's meeting",pre:1},
+  {id:"6hjgjgV8gqF6VVMf",src:"td",t:"Mill Unit test setup",proj:"Mill W150Fi",pri:4,due:"due today",why:"backlog, due today"},
+  {id:"6hjgjP93GCg5R6f3",src:"td",t:"HX90 PR Request 14",proj:"HX70",pri:2,due:"due 28 Sep",late:14,why:"p2"},
+  {id:"6hjgjxhgmmMc4fFq",src:"td",t:"Pull request 15 (HX90)",proj:"Continuous Integration",pri:2,due:"due 28 Sep",late:14,why:"p2"},
+  {id:"6hjgjxm8h7XJ4h9q",src:"td",t:"Pull request 2 (HX90_HVAC)",proj:"Continuous Integration",pri:2,due:"due 28 Sep",late:14,why:"p2"},
+  {id:"6hjgjxgWPmGCPRJq",src:"td",t:"Update the software meeting template",proj:"Continuous Integration",pri:2,due:"due 28 Sep",late:14,why:"p2"},
+  {id:"6hjgjxgx5RcFxMrH",src:"td",t:"Add the Software Future Requirements to the Library Jira",proj:"Continuous Integration",pri:2,due:"due 28 Sep",late:14,why:"p2"},
+  {id:"6hjgjxhrHPXrjmfH",src:"td",t:"If we got paid, buy PCAN Explorer 7",proj:"Continuous Integration",pri:4,due:"due today",why:"only if you got paid"}
+];
+
+const GROUPS = [
+  {id:"ci",name:"Continuous Integration",items:[
+    ["6hjgjxgWPmGCPRJq","Update the software meeting template",2],["6hjgjxgx5RcFxMrH","Add the Software Future Requirements to the Library Jira",2],
+    ["6hjgjxhgmmMc4fFq","Pull request 15 (HX90)",2],["6hjgjxm8h7XJ4h9q","Pull request 2 (HX90_HVAC)",2],
+    ["6hjgjxjXq8XGp8mq","Set up new laptop",3],["6hjgjxrcC9QggpFH","after files have copied",4,1],["6hjgm29wP4r7WvPq","auto-update to expansion",1,2],
+    ["6hjgjxm9hv9grq3q","Migrate from old laptop",3],["6hjgjxgvHcRfmpGH","Add label onto the plant “Carlijn the Continuous Integration Money Tree”",3],
+    ["6hjgjxhG3F2jpxCq","Switch to Todoist for work account so Claude can clean it up",3],["6hjgjxhmGc7RVcqq","Update the “In Progress” items on All Projects Jira board",3],
+    ["6hjgjxjh8W8Q2R2q","Re-jig holidays so Monday 15th June is sick leave",3],["6hjgjxjjXrHR3Vfq","Do we have any parameters on the UDS linked to machine functionality?",3],
+    ["6hjgjxgqw3C5jw3H","Claude task automation",4],["6hjgjxvXvPpcRJ4q","switch to Todoist",2,1],["6hjgjxrCcXwp765H","get Claude to check Todoist instead",4,1],["6hjgjxwHxHvvvqHq","find way to have Personal to Work Inbox / Work to Personal Inbox",4,1],
+    ["6hjgjxhh6jmWGgqq","Ask Jorgy how he'd feel about giving Claude access to the BookStack",4]]},
+  {id:"hx70",name:"HX70",items:[
+    ["6hjgjP93GCg5R6f3","HX90 PR Request 14",2],["6hjgjP9W3CWCMwG3","Pull request: “This is what claude says: The two timers do different jobs…”",4],
+    ["6hjgjP9rgfp753j3","NEP6-4: Rogier mentioned you; blocked waiting for a start signal from Jorge",4],["6hjgjPCw57PMrw9V","Clean HX70 tasks so Rogier can pick them up (Blocker)",4]]},
+  {id:"cat",name:"CAT 330z",items:[
+    ["6hjgmQ6xhpjF96HC","Isolation monitor: code review",3],["6hjgmQ7Xxw86pj7j","Frank code review: used energy (NEP6-33)",3],
+    ["6hjgmQ85xRGQmR8C","Frank code review: null check errors",3],["6hjgmQ8VmFF5p76j","Frank code review: temperature sensor",3],["6hjgmQ8p3wmXXWXj","Review Claude SonarQube fixes (library PR 53)",4]]},
+  {id:"house",name:"Housekeeping and recurring",items:[
+    ["6hjgj9Vvg2gcGfXf","Log extra time (26 Aug 2h, 3 Sep 3.5h, 17 Sep 1h)",4],["6hjgj9WqhH8fCC57","Send invoices to Shahbaz (monthly, due 1 Oct)",3],
+    ["6hjgj9Vjmmxj5jrf","Bring laptop home (every Friday)",4],["6X5hG8CVQV9jR2m9","Plan the week ahead, 15 min (every Friday)",4]]}
+];
+const CHOICES = [["keep","Leave as is"],["split","P1–P2 this week, rest next Monday"],["week","Spread all over this week"],["next","All to next Monday"],["review","One by one tomorrow"]];
+
+const UPCOMING = [
+  {id:"tt-bag",t:"Pack bag for school",when:"Tue 13 Oct, 08:30 (repeats Tue, Wed, Fri)",pre:1},
+  {id:"tt-sam",t:"Talk to Sam about working from home 1 day (step 2 of 2)",when:"Thu 15 Oct, office day",pre:1},
+  {id:"tt-kaak",t:"Kaakchirurgie appointment UMC",when:"Fri 16 Oct, 09:30",pre:1},
+  {id:"tt-dinner",t:"House Dinner",when:"Sat 17 Oct, 19:00 (weekly)",pre:1}
+];
+
+const $ = (s, r=document) => r.querySelector(s);
+const el = (tag, attrs={}, ...kids) => { const e = document.createElement(tag); for (const [k,v] of Object.entries(attrs)) { if (k==="class") e.className=v; else if (k==="text") e.textContent=v; else e.setAttribute(k,v); } kids.forEach(c => e.append(c)); return e; };
+
+const S = { cap:"4h", energy:"ok", mustNot:"", today:new Set(TODAY.filter(t=>t.pre).map(t=>t.id)), groups:{}, groupNotes:{}, pins:new Set(UPCOMING.filter(u=>u.pre).map(u=>u.id)), samStep1:false, free:"", len:"same" };
+GROUPS.forEach(g => S.groups[g.id] = "keep");
+
+function chips(host, name, opts, key) {
+  opts.forEach(([v,l]) => {
+    const id = name+"-"+v;
+    host.append(el("input",{type:"radio",name,id,value:v}), el("label",{for:id,text:l}));
+  });
+  host.addEventListener("change", e => { S[key] = e.target.value; touched(1); });
+}
+function syncChips(name, val) { const i = document.getElementById(name+"-"+val); if (i) i.checked = true; }
+
+function renderToday() {
+  const host = $("#todayList"); host.textContent = "";
+  TODAY.forEach(t => {
+    const cb = el("input",{type:"checkbox",id:"t-"+t.id,"aria-labelledby":"tl-"+t.id}); cb.checked = S.today.has(t.id);
+    cb.addEventListener("change", () => { cb.checked ? S.today.add(t.id) : S.today.delete(t.id); updateCount(); renderGroups(); touched(2); });
+    const meta = el("span",{class:"meta"});
+    if (t.pri<4) meta.append(el("span",{class:"pill p"+t.pri,text:"p"+t.pri}));
+    meta.append(el("span",{text:t.proj}), el("span",{text:t.due}), el("span",{text:t.why}));
+    host.append(el("div",{class:"task"}, cb, el("div",{class:"body"}, el("span",{class:"ttl",id:"tl-"+t.id,text:t.t}), meta)));
+  });
+  updateCount();
+}
+function updateCount() {
+  const n = S.today.size, max = CAP_MAX[S.cap], c = $("#count");
+  c.textContent = n+" picked. "+S.cap.replace("8h","a full day")+" usually fits about "+max+".";
+  c.classList.toggle("over", n>max);
+}
+
+function renderGroups() {
+  const host = $("#groups"); const open = new Set([...host.querySelectorAll("details[open]")].map(d=>d.dataset.g));
+  host.textContent = "";
+  GROUPS.forEach(g => {
+    const left = g.items.filter(i => !S.today.has(i[0])).length;
+    const ul = el("ul");
+    g.items.forEach(([id,t,p,sub]) => {
+      const li = el("li",{class:(sub?"sub ":"")+(S.today.has(id)?"picked":"")});
+      if (p<=2) li.append(el("span",{class:"pill p"+p,text:"p"+p})); else li.append(el("span",{class:"pill",style:"visibility:hidden",text:"p"+p}));
+      li.append(el("span",{class:"ttl",text:t})); ul.append(li);
+    });
+    const det = el("details",{"data-g":g.id}, el("summary",{text:"Show the "+g.items.length+" tasks"}), ul); if (open.has(g.id)) det.open = true;
+    const chipHost = el("div",{class:"chips"});
+    CHOICES.forEach(([v,l]) => {
+      const id = "g-"+g.id+"-"+v;
+      const r = el("input",{type:"radio",name:"g-"+g.id,id,value:v}); r.checked = S.groups[g.id]===v;
+      r.addEventListener("change", () => { S.groups[g.id]=v; touched(3); });
+      chipHost.append(r, el("label",{for:id,text:l}));
+    });
+    const note = el("input",{type:"text",id:"gn-"+g.id,placeholder:"Optional note for this group","aria-label":"Note for "+g.name}); note.value = S.groupNotes[g.id]||"";
+    note.addEventListener("input", () => { S.groupNotes[g.id]=note.value; touched(3); });
+    host.append(el("div",{class:"group"},
+      el("div",{class:"group-head"}, el("h3",{text:g.name}), el("span",{class:"mono small muted",text:left+" overdue"+(left<g.items.length?" ("+(g.items.length-left)+" picked for today)":"")})),
+      chipHost, det, note));
+  });
+}
+
+function renderUpcoming() {
+  const host = $("#upcoming"); host.textContent = "";
+  UPCOMING.forEach(u => {
+    const cb = el("input",{type:"checkbox",id:"u-"+u.id,"aria-labelledby":"ul-"+u.id}); cb.checked = S.pins.has(u.id);
+    cb.addEventListener("change", () => { cb.checked ? S.pins.add(u.id) : S.pins.delete(u.id); touched(4); });
+    host.append(el("div",{class:"task"}, cb, el("div",{class:"body"}, el("span",{class:"ttl",id:"ul-"+u.id,text:u.t}), el("span",{class:"meta",text:u.when}))));
+  });
+}
+
+const seen = new Set(); let dirty = false;
+function touched(n) { seen.add(n); dirty = true; $("#msg").className = "msg"; $("#msg").textContent = "Unsaved changes."; paint(); stash(); }
+function paint() {
+  document.querySelectorAll(".strip a[data-s]").forEach(a => a.classList.toggle("done", seen.has(+a.dataset.s)));
+  const mins = [1,3,5,2,1].reduce((s,m,i)=> s + (seen.has(i+1)?m:0), 0);
+  $("#budget").textContent = mins+" / 12 min";
+}
+function collect() {
+  return { date:DATE, savedAt:new Date().toISOString(), capacity:S.cap, energy:S.energy, mustNotSlip:S.mustNot, todayPicked:[...S.today],
+    todayDeclined:TODAY.filter(t=>t.pre && !S.today.has(t.id)).map(t=>t.id),
+    overdueChoice:S.groups, overdueNotes:S.groupNotes, pinned:[...S.pins], samStep1Done:S.samStep1, freeText:S.free, nextLength:S.len };
+}
+function stash() { try { localStorage.setItem("mrt-"+DATE, JSON.stringify(collect())); } catch(e){} }
+function apply(d) {
+  if (!d) return;
+  S.cap = d.capacity||S.cap; S.energy = d.energy||S.energy; S.mustNot = d.mustNotSlip||""; S.free = d.freeText||""; S.len = d.nextLength||"same";
+  if (d.todayPicked) S.today = new Set(d.todayPicked);
+  if (d.overdueChoice) S.groups = {...S.groups, ...d.overdueChoice};
+  if (d.overdueNotes) S.groupNotes = d.overdueNotes;
+  if (d.pinned) S.pins = new Set(d.pinned);
+  S.samStep1 = !!d.samStep1Done;
+  syncChips("cap",S.cap); syncChips("energy",S.energy); syncChips("len",S.len);
+  $("#mustNot").value = S.mustNot; $("#free").value = S.free; $("#samStep1").checked = S.samStep1;
+  renderToday(); renderGroups(); renderUpcoming();
+}
+
+chips($("#capChips"),"cap",CAPS,"cap"); chips($("#energyChips"),"energy",ENERGY,"energy"); chips($("#lenChips"),"len",LEN,"len");
+$("#capChips").addEventListener("change", updateCount);
+$("#mustNot").addEventListener("input", e => { S.mustNot = e.target.value; touched(1); });
+$("#free").addEventListener("input", e => { S.free = e.target.value; touched(5); });
+$("#samStep1").addEventListener("change", e => { S.samStep1 = e.target.checked; touched(4); });
+document.querySelectorAll("[data-all]").forEach(b => b.addEventListener("click", () => { GROUPS.forEach(g => S.groups[g.id] = b.dataset.all); renderGroups(); touched(3); }));
+syncChips("cap",S.cap); syncChips("energy",S.energy); syncChips("len",S.len);
+renderToday(); renderGroups(); renderUpcoming(); paint();
+
+let dbRef = null;
+(async () => {
+  try { const raw = localStorage.getItem("mrt-"+DATE); if (raw) apply(JSON.parse(raw)); } catch(e){}
+  try {
+    const db = await window.claude?.use?.("db");
+    if (!db) { $("#fallback").style.display = "block"; return; }
+    dbRef = db.doc("checkins/"+DATE);
+    const snap = await dbRef.get();
+    if (snap.exists) { apply(snap.data()); $("#msg").textContent = "Loaded your saved answers for today."; ["1","2","3","4","5"].forEach(n=>seen.add(+n)); paint(); }
+  } catch(e) { $("#fallback").style.display = "block"; }
+})();
+
+$("#save").addEventListener("click", async () => {
+  const data = collect(), msg = $("#msg"), btn = $("#save");
+  $("#fallbackOut").value = JSON.stringify(data, null, 1);
+  if (!dbRef) { msg.className = "msg err"; msg.textContent = "Can't save from this view. Copy the answers from step 5 and paste them to Claude."; $("#fallback").style.display = "block"; return; }
+  btn.disabled = true; msg.className = "msg"; msg.textContent = "Saving…";
+  try { await dbRef.set(data); dirty = false; msg.className = "msg ok"; msg.textContent = "Saved. Tomorrow's run applies your choices, then builds the next page. Nothing has been changed in your task apps yet."; }
+  catch(e) { msg.className = "msg err"; msg.textContent = "Save failed ("+(e && e.code || "unknown")+"). Your answers are kept in this browser; press Save again."; }
+  btn.disabled = false;
+});
+</script>
