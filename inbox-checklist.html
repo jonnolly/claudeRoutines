@@ -1,0 +1,110 @@
+<title>Inbox Checklist</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono&display=swap">
+<style>
+/* Layout: single narrow column, grouped sections by priority, rows with checkbox + summary, drafts collapse under their row */
+:root{
+  --bg:#f6f7f5; --surface:#ffffff; --fg:#1d2420; --muted:#66706a; --line:#dfe3df;
+  --urgent:#b3261e; --action:#b25e00; --fyi:#2b6a8a; --low:#6b7570; --accent:#1f6f54; --accent-fg:#ffffff;
+  --font-display:"Fraunces",Georgia,serif; --font-body:"Public Sans",system-ui,sans-serif; --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141916; --surface:#1c231f; --fg:#e8ede9; --muted:#97a39b; --line:#2c3630;
+  --urgent:#ff8a80; --action:#ffb454; --fyi:#7cc4e6; --low:#9aa59e; --accent:#5fcf9f; --accent-fg:#0d1511; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#141916; --surface:#1c231f; --fg:#e8ede9; --muted:#97a39b; --line:#2c3630;
+  --urgent:#ff8a80; --action:#ffb454; --fyi:#7cc4e6; --low:#9aa59e; --accent:#5fcf9f; --accent-fg:#0d1511; color-scheme:dark;}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--font-body);padding-inline:16px;padding-block:24px}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:600 28px/1.2 var(--font-display);margin:0;text-wrap:balance}
+.meta{color:var(--muted);font-size:13px;margin:4px 0 0}
+.progress{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
+.bar{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+section{display:flex;flex-direction:column;gap:8px}
+h2{font:600 12px/1 var(--font-body);letter-spacing:.09em;text-transform:uppercase;margin:0;color:var(--tone)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+li{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--tone);border-radius:6px;padding:12px 14px;min-width:0}
+label{display:flex;gap:12px;align-items:flex-start;cursor:pointer;min-width:0}
+input[type=checkbox]{width:20px;height:20px;margin:2px 0 0;accent-color:var(--accent);flex:none}
+input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.t{min-width:0;overflow-wrap:anywhere}
+.t b{display:block;font-weight:600}
+.t span{color:var(--muted);font-size:14px}
+li.done .t{opacity:.5;text-decoration:line-through}
+details{margin:10px 0 0 32px}
+summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:500}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 var(--font-mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;margin:8px 0}
+button{font:500 13px var(--font-body);background:var(--accent);color:var(--accent-fg);border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+.q{background:var(--surface);border:1px dashed var(--line);border-radius:6px;padding:12px 14px}
+.empty{color:var(--muted);font-size:14px}
+.note{color:var(--muted);font-size:13px}
+</style>
+<main>
+  <header>
+    <h1>Inbox checklist</h1>
+    <p class="meta" id="meta">Loading…</p>
+  </header>
+  <div class="progress"><span id="count">0 of 0 done</span><div class="bar"><i id="fill"></i></div></div>
+  <div id="groups"><p class="empty">Nothing to show yet. The next inbox run adds items here.</p></div>
+  <p class="note" id="status" hidden></p>
+</main>
+<script>
+(function(){
+  var GROUPS=[["urgent","Urgent","--urgent"],["action","Action needed","--action"],["fyi","FYI","--fyi"],["low","Low priority","--low"],["question","Today's backlog question","--accent"]];
+  var root=document.getElementById("groups"),meta=document.getElementById("meta"),status=document.getElementById("status");
+  var itemsRef=null,items=[];
+  function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+  function render(){
+    root.textContent="";
+    var done=items.filter(function(i){return i.done}).length;
+    document.getElementById("count").textContent=done+" of "+items.length+" done";
+    document.getElementById("fill").style.width=items.length?(100*done/items.length)+"%":"0";
+    var runs=items.map(function(i){return i.run||""}).sort();
+    meta.textContent=items.length?"Last updated "+runs[runs.length-1]+" · tick items as you handle them":"No items yet";
+    if(!items.length){root.appendChild(el("p","empty","Nothing to show yet. The next inbox run adds items here."));return}
+    GROUPS.forEach(function(g){
+      var list=items.filter(function(i){return i.group===g[0]}).sort(function(a,b){return (a.order||0)-(b.order||0)});
+      if(!list.length)return;
+      var s=el("section");s.style.setProperty("--tone","var("+g[2]+")");
+      s.appendChild(el("h2",null,g[1]));
+      var ul=el("ul");
+      list.forEach(function(i){
+        var li=el("li",i.done?"done":"");
+        var lab=el("label");
+        var cb=el("input");cb.type="checkbox";cb.id="cb-"+i.id;cb.checked=!!i.done;
+        cb.addEventListener("change",function(){toggle(i.id,cb.checked)});
+        var t=el("div","t");t.appendChild(el("b",null,i.title));if(i.summary)t.appendChild(el("span",null,i.summary));
+        lab.appendChild(cb);lab.appendChild(t);li.appendChild(lab);
+        if(i.draft){
+          var d=el("details");d.appendChild(el("summary",null,"Draft reply"));
+          d.appendChild(el("pre",null,i.draft));
+          var b=el("button",null,"Copy draft");
+          b.addEventListener("click",function(){
+            var ok=function(){b.textContent="Copied"};
+            if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(i.draft).then(ok,function(){selectPre(d.querySelector("pre"))})}else selectPre(d.querySelector("pre"));
+          });
+          d.appendChild(b);li.appendChild(d);
+        }
+        ul.appendChild(li);
+      });
+      s.appendChild(ul);root.appendChild(s);
+    });
+  }
+  function selectPre(p){var r=document.createRange();r.selectNodeContents(p);var s=getSelection();s.removeAllRanges();s.addRange(r)}
+  var pending={};
+  function toggle(id,val){
+    var it=items.find(function(i){return i.id===id});if(it)it.done=val;render();
+    if(!itemsRef)return;
+    (pending[id]=(pending[id]||Promise.resolve()).then(function(){return itemsRef.doc(id).update({done:val})}))
+      .catch(function(){status.hidden=false;status.textContent="Could not save that tick. It will reset on reload."});
+  }
+  claude.use("db").then(function(db){
+    if(!db){status.hidden=false;status.textContent="Saving is unavailable in this view, so ticks will not be kept.";render();return}
+    itemsRef=db.collection("items");
+    itemsRef.onSnapshot(function(snap){
+      items=snap.docs.map(function(d){var x=Object.assign({},d.data());x.id=d.id;return x});render();
+    },function(){status.hidden=false;status.textContent="Could not load items.";});
+  }).catch(function(){render()});
+  render();
+})();
+</script>
