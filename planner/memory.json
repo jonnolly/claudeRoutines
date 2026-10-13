@@ -1,0 +1,9 @@
+{
+  "artifact_url": "https://claude.ai/artifact/DLzDR7WhDDVhXJ6yZ12tRb",
+  "note": "Daily planner page. Answers are embedded in the page's #state JSON after the user presses Save (read it with the Artifact read action). Apply with reschedule-tasks (keeps recurrence). Never delete/complete/archive unless user picked it.",
+  "schedule": "Mon full day, Tue 2h, Wed 9-11, Thu full day, Fri off. Monday = full week planning; if no week plan done, do it on first run of week.",
+  "days": {
+    "2026-10-13": {"status": "published_awaiting_answers", "week_plan_done": false, "applied": false}
+  },
+  "answers_history": []
+}

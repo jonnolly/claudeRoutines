@@ -1,0 +1,233 @@
+<title>Day Planner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a week strip with live task load per day, then short question blocks, one sticky save bar. */
+:root{
+  --bg:#edf0f2; --panel:#f8fafb; --ink:#13202b; --muted:#566673; --line:#cfd8de;
+  --accent:#0a6c88; --accent-ink:#ffffff; --warn:#b4540a; --ok:#1f7a4d; --chip:#dfe7ec;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f171d; --panel:#16222b; --ink:#e6edf1; --muted:#93a5b1; --line:#2a3a46;
+  --accent:#4fc0de; --accent-ink:#06222b; --warn:#f0a35e; --ok:#6fd19c; --chip:#22323d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171d; --panel:#16222b; --ink:#e6edf1; --muted:#93a5b1; --line:#2a3a46;
+  --accent:#4fc0de; --accent-ink:#06222b; --warn:#f0a35e; --ok:#6fd19c; --chip:#22323d; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+*{box-sizing:border-box}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 110px}
+h1{font-family:var(--f-display);font-size:30px;line-height:1.1;margin:0 0 4px;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:20px;margin:0 0 2px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 16px}
+.mono{font-family:var(--f-mono)}
+.week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0 24px}
+.day{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 8px 10px;min-width:0}
+.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.day .d{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.day .cap{font-weight:600;font-size:13px}
+.day .n{font-family:var(--f-mono);font-size:22px;margin-top:4px}
+.day.over .n{color:var(--warn)}
+.day.past{opacity:.55}
+section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin:0 0 16px}
+.hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:8px 12px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.t{min-width:0;overflow-wrap:anywhere}
+.t b{font-weight:500}
+.meta{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:0 6px;border-radius:3px;background:var(--chip);margin-right:6px}
+.pill.p1{background:var(--warn);color:var(--bg)}
+.kids{margin:2px 0 0;padding-left:16px;color:var(--muted);font-size:12.5px}
+select,textarea,input[type=text]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:7px 8px;width:100%;min-width:0}
+textarea{min-height:72px;resize:vertical}
+select:focus,textarea:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+label.chk{display:flex;gap:10px;align-items:flex-start;padding:7px 0;cursor:pointer}
+label.chk input{margin-top:4px;width:16px;height:16px;accent-color:var(--accent);flex:none}
+.q{font-weight:600;margin:14px 0 4px}
+.q:first-of-type{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg label{border:1px solid var(--line);border-radius:5px;padding:6px 12px;cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0}
+.seg label:has(input:checked){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:1px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.bar .msg{font-size:13px;color:var(--muted)}
+button.save{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:10px 22px;cursor:pointer}
+button.save:disabled{opacity:.5;cursor:default}
+.banner{border:1px solid var(--ok);color:var(--ok);border-radius:6px;padding:10px 12px;margin:0 0 16px;font-size:14px}
+.warnline{color:var(--warn);font-size:13px;margin-top:6px}
+.readonly-note{color:var(--warn)}
+@media (max-width:560px){.row{grid-template-columns:1fr}.week{gap:5px}.day .n{font-size:18px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="wrap" id="app"></div>
+<script type="application/json" id="state">{"saved":false,"answers":{}}</script>
+<script id="code">
+(function(){
+var DATES={tue:"2026-10-13",wed:"2026-10-14",thu:"2026-10-15",fri:"2026-10-16",mon:"2026-10-19"};
+var OPT={
+  tue:"Do today (Tue 13)",wed:"Wed 14 (9–11)",thu:"Thu 15 (full day)",fri:"Fri 16 (off day)",mon:"Mon 19",keep:"Leave as it is",done:"Already done, tick it off"
+};
+var DAYS=[
+ {k:"mon12",name:"Mon 12",cap:"Full day",past:true},
+ {k:"tue",name:"Tue 13",cap:"2 hours",today:true,limit:4},
+ {k:"wed",name:"Wed 14",cap:"9–11am",limit:3},
+ {k:"thu",name:"Thu 15",cap:"Full day",limit:9},
+ {k:"fri",name:"Fri 16",cap:"Off",limit:0}
+];
+/* Today block: individual tasks that are due today, overdue, or undated but p1 */
+var TODAY=[
+ {id:"6hjgj9Vvg2gcGfXf",t:"log extra time",p:"Housekeeping",pr:4,now:"tue",opts:["tue","wed","thu","mon","keep","done"]},
+ {id:"6hjgj9WqhH8fCC57",t:"send invoices to shahbaz (monthly)",p:"Housekeeping",pr:3,now:"tue",opts:["tue","wed","thu","mon","keep","done"]},
+ {id:"6hjgjgV8gqF6VVMf",t:"Mill Unit test setup (Ceedling)",p:"Mill W150Fi",pr:4,now:"tue",opts:["tue","wed","thu","mon","keep"]},
+ {id:"6hjgjxgqw3C5jw3H",t:"claude task automation",p:"Continuous Integration",pr:4,now:"tue",kids:["switch to todoist (due Thu 15)"],opts:["tue","wed","thu","mon","keep","done"]},
+ {id:"6hjhJhvq88fC4xxh",t:"Implement a cloud routine project for W150Fi, Library, Bat manager, HX90",p:"Mill W150Fi",pr:4,now:"tue",opts:["tue","wed","thu","mon","keep"]},
+ {id:"6hjgj9VXXRw3V5pf",t:"catch up with time logging",p:"Housekeeping",pr:1,now:"none",opts:["tue","wed","thu","mon","keep","done"]},
+ {id:"6hjgjPF68fJrfFJV",t:"merge and test the remote flashing stuff for tomorrow's visit",p:"HX70",pr:1,now:"none",kids:["merge library NEP006_HX70_main to main","merge HX90 V1.7.8 to main","test issues"],note:"Reads as if the visit has already passed. Is it still open?",opts:["tue","wed","thu","mon","keep","done"]},
+ {id:"6hjgj9Vjmmxj5jrf",t:"bring laptop home (every Friday 16:55)",p:"Housekeeping",pr:4,now:"overdue",note:"Overdue since Mon 12. Recurring, so it keeps repeating.",opts:["fri","keep"]}
+];
+/* Batches: tasks that were all parked on Mon 19 Oct */
+var BATCH=[
+ {k:"pr",name:"Pull request reviews",def:"thu",ids:["6hjgjP93GCg5R6f3","6hjgjP9W3CWCMwG3","6hjgjxhgmmMc4fFq","6hjgjxm8h7XJ4h9q","6hjgmQ8p3wmXXWXj"],items:["HX90 PR 14 (p2) and its follow-up note","HX90 PR 15 (p2)","HX90_HVAC PR 2 (p2)","Review Claude sonarqube fixes (library PR 53)"]},
+ {k:"cat",name:"CAT 330z release and code reviews",def:"thu",ids:["6hjgmQ7VXMxWX29j","6hjgmQ6xhpjF96HC","6hjgmQ7Xxw86pj7j","6hjgmQ85xRGQmR8C","6hjgmQ8VmFF5p76j"],items:["Release a SOH version for the CAT (p1)","Isolation monitor code review","frank code review: used energy","frank code review: null check errors","frank code review: temperature sensor"]},
+ {k:"ci",name:"Software meeting and CI admin (Carlijn)",def:"mon",ids:["6hjgjxgWPmGCPRJq","6hjgjxgvHcRfmpGH","6hjgjxgx5RcFxMrH","6hjgjxhmGc7RVcqq","6hjgjxjjXrHR3Vfq"],items:["Update the software meeting template (p2)","Add label onto the plant","Add Software Future Requirements to the Library Jira (p2)","Update In Progress items on All Projects Jira board","UDS parameters linked to machine functionality?"]},
+ {k:"laptop",name:"New laptop setup",def:"mon",ids:["6hjgjxjXq8XGp8mq","6hjgjxrcC9QggpFH","6hjgm29wP4r7WvPq","6hjgjxm9hv9grq3q"],items:["Set up new laptop","Migrate from old laptop","auto-update to expansion (p1)"]},
+ {k:"hx70",name:"HX70 handover to Rogier",def:"thu",ids:["6hjgjP9rgfp753j3","6hjgjPCw57PMrw9V"],items:["Clean HX70 tasks so Rogier can pick them up (Blocker)","NEP6-4: Rogier is waiting on a start signal from Jorge"]},
+ {k:"hr",name:"Holidays and small purchases",def:"mon",ids:["6hjgjxjh8W8Q2R2q","6hjgjxhrHPXrjmfH"],items:["Re-jig holidays so Mon 15 June is sick leave (p3)","Buy PCAN Explorer 7 once paid"]}
+];
+var THEMES=[
+ {k:"jenkins",n:"Jenkins and CI pipeline",d:"fix authentication, RC pipeline, batman unit tests, VS Code debugging, releases from main"},
+ {k:"obs",n:"HX90 OBS features",d:"isolation monitor, welded contactor feedback, new warnings, J1939 improvements"},
+ {k:"hx70",n:"HX70 testing",d:"service plug checks, flash all components, test new OBS variables"},
+ {k:"mill",n:"Mill W150Fi",d:"unit tests, backlog items"},
+ {k:"kit",n:"Equipment and workshop",d:"buy cables and dongles, harness for CC16 / CC27, labels"},
+ {k:"docs",n:"Documentation and Confluence",d:"Suncar gateway, start-up times, state machine docs"}
+];
+
+var S=JSON.parse(document.getElementById("state").textContent);
+var A=S.answers||{};
+var canWrite=true, artifact=null;
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function val(k,def){return (A[k]!==undefined)?A[k]:def}
+function opts(list,sel){return list.map(function(o){return '<option value="'+o+'"'+(o===sel?' selected':'')+'>'+esc(OPT[o])+'</option>'}).join("")}
+function defTodayChoice(it){return it.now==="tue"?"tue":(it.now==="overdue"?"fri":"keep")}
+
+function render(){
+  var h='';
+  h+='<h1>Tuesday 13 October</h1>';
+  h+='<p class="sub">Week 42. No week plan has been done yet, so this one covers today and the rest of the week. About 15 minutes. Nothing is deleted, completed or archived unless you pick it here.</p>';
+  if(S.saved)h+='<div class="banner">Saved. Your answers are being applied to Todoist now. The next planner will open with these choices remembered.</div>';
+  h+='<div class="week" id="week"></div>';
+
+  h+='<section><h2>1. Today, 2 hours</h2><p class="hint">Pick a day for each. Anything marked Do today counts against your 2 hours.</p>';
+  TODAY.forEach(function(it){
+    var key="t_"+it.id, sel=val(key,defTodayChoice(it));
+    h+='<div class="row"><div class="t"><span class="pill p'+it.pr+'">p'+it.pr+'</span><b>'+esc(it.t)+'</b><div class="meta">'+esc(it.p)+' · '+(it.now==="tue"?"due today":it.now==="overdue"?"overdue":"no date")+'</div>'+
+     (it.kids?'<ul class="kids">'+it.kids.map(function(k){return '<li>'+esc(k)+'</li>'}).join("")+'</ul>':'')+
+     (it.note?'<div class="meta readonly-note">'+esc(it.note)+'</div>':'')+
+     '</div><select data-k="'+key+'" aria-label="'+esc(it.t)+'">'+opts(it.opts,sel)+'</select></div>';
+  });
+  h+='<div class="warnline" id="todaywarn" hidden>That is a lot for 2 hours. Consider moving one to Thursday.</div></section>';
+
+  h+='<section><h2>2. The Mon 19 pile</h2><p class="hint">About 25 tasks were all dated next Monday. One choice per batch moves the whole batch. Subtasks stay attached.</p>';
+  BATCH.forEach(function(b){
+    var key="b_"+b.k, sel=val(key,b.def);
+    h+='<div class="row"><div class="t"><b>'+esc(b.name)+'</b><div class="meta">'+b.ids.length+' tasks</div><ul class="kids">'+b.items.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul></div>'+
+     '<select data-k="'+key+'" aria-label="'+esc(b.name)+'">'+opts(["tue","wed","thu","fri","mon","keep"].filter(function(o){return o!=="fri"}),sel)+'</select></div>';
+  });
+  h+='</section>';
+
+  h+='<section><h2>3. Undated work: what is this week about?</h2><p class="hint">Tick up to two. I will pull the three highest-priority undated tasks from each onto Thursday. The rest of the backlog stays exactly where it is.</p>';
+  THEMES.forEach(function(t){
+    var key="th_"+t.k, on=val(key,false);
+    h+='<label class="chk"><input type="checkbox" data-k="'+key+'"'+(on?' checked':'')+'><span><b>'+esc(t.n)+'</b><div class="meta">'+esc(t.d)+'</div></span></label>';
+  });
+  h+='</section>';
+
+  h+='<section><h2>4. The week in your own words</h2>';
+  h+='<div class="q">Top outcomes for this week</div>';
+  for(var i=1;i<=3;i++)h+='<input type="text" id="out'+i+'" data-k="out'+i+'" style="margin:0 0 6px" placeholder="Outcome '+i+'" value="'+esc(val("out"+i,""))+'">';
+  h+='<div class="q">Fixed meetings, visits and deadlines this week</div><textarea id="fixed" data-k="fixed" placeholder="e.g. Thu 10:00 software meeting">'+esc(val("fixed",""))+'</textarea>';
+  h+='<div class="q">Reminders I must not lose</div><textarea id="remind" data-k="remind" placeholder="One per line. I will add each as a task with a date you give, or in the Inbox if none.">'+esc(val("remind",""))+'</textarea>';
+  h+='<div class="q">New tasks to add</div><textarea id="newtasks" data-k="newtasks" placeholder="One per line. Add &quot;on thu&quot; or &quot;p1&quot; at the end if you like.">'+esc(val("newtasks",""))+'</textarea>';
+  h+='</section>';
+
+  h+='<section><h2>5. How are you today?</h2><div class="seg" role="radiogroup" aria-label="Energy">';
+  [["high","Sharp"],["ok","Fine"],["low","Low"]].forEach(function(o){
+    h+='<label><input type="radio" name="energy" data-k="energy" value="'+o[0]+'"'+(val("energy","ok")===o[0]?' checked':'')+'>'+o[1]+'</label>';
+  });
+  h+='</div><label class="chk" style="margin-top:10px"><input type="checkbox" data-k="tidy"'+(val("tidy",true)?' checked':'')+'><span>Next Monday, show me the starter-template tasks (Weekly Review, My work) and ask what to do with them. Nothing moves before then.</span></label>';
+  h+='<div class="q">Anything else I should know</div><textarea id="other" data-k="other">'+esc(val("other",""))+'</textarea></section>';
+
+  h+='<div class="bar"><span class="msg" id="msg">Your answers save to this page and I apply them straight away.</span><button class="save" id="save" type="button">Save and apply</button></div>';
+  document.getElementById("app").innerHTML=h;
+  wire(); updateWeek();
+}
+
+function collect(){
+  var o={};
+  document.querySelectorAll("[data-k]").forEach(function(el){
+    var k=el.getAttribute("data-k");
+    if(el.type==="checkbox")o[k]=el.checked;
+    else if(el.type==="radio"){if(el.checked)o[k]=el.value}
+    else o[k]=el.value;
+  });
+  return o;
+}
+function dayCounts(a){
+  var c={tue:0,wed:0,thu:0,fri:0,mon:0};
+  TODAY.forEach(function(it){var v=(a["t_"+it.id]||defTodayChoice(it));if(c[v]!==undefined)c[v]++;});
+  BATCH.forEach(function(b){var v=(a["b_"+b.k]||b.def);if(c[v]!==undefined)c[v]+=b.ids.length;});
+  return c;
+}
+function updateWeek(){
+  var a=collect(), c=dayCounts(a), h='';
+  DAYS.forEach(function(d){
+    var n=d.past?"✓":(d.k==="fri"?c.fri:c[d.k]), over=!d.past&&d.limit!==undefined&&typeof n==="number"&&n>d.limit&&d.k!=="fri"||(d.k==="fri"&&c.fri>0);
+    h+='<div class="day'+(d.today?' today':'')+(d.past?' past':'')+(over?' over':'')+'"><div class="d">'+d.name+'</div><div class="cap">'+d.cap+'</div><div class="n">'+n+'</div></div>';
+  });
+  document.getElementById("week").innerHTML=h;
+  var tw=document.getElementById("todaywarn"); if(tw)tw.hidden=!(c.tue>4);
+}
+function wire(){
+  document.querySelectorAll("[data-k]").forEach(function(el){
+    el.addEventListener("change",updateWeek); el.addEventListener("input",function(){if(el.tagName==="SELECT")updateWeek()});
+  });
+  var themes=document.querySelectorAll('[data-k^="th_"]');
+  themes.forEach(function(el){el.addEventListener("change",function(){
+    var on=[].filter.call(themes,function(x){return x.checked});
+    if(on.length>2){el.checked=false;document.getElementById("msg").textContent="Two themes at most. Untick one first."}
+  })});
+  document.getElementById("save").addEventListener("click",save);
+}
+function buildDoc(state){
+  var styles=document.querySelectorAll("style");
+  var reset=document.head.querySelector("style")?document.head.querySelector("style").textContent:"";
+  var pageStyle=styles[styles.length-1].textContent;
+  var code=document.getElementById("code").textContent;
+  var font=document.querySelector('link[rel="stylesheet"]').outerHTML;
+  var close="</"+"script>";
+  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+reset+'</style></head><body>'+
+    '<title>Day Planner</title>'+font+'<style>'+pageStyle+'</style><div class="wrap" id="app"></div>'+
+    '<script type="application/json" id="state">'+JSON.stringify(state).replace(/</g,"\\u003c")+close+
+    '<script id="code">'+code+close+'</body></html>';
+}
+async function save(){
+  var btn=document.getElementById("save"), msg=document.getElementById("msg");
+  btn.disabled=true; msg.textContent="Saving…";
+  var state={saved:true,savedAt:new Date().toISOString(),date:"2026-10-13",answers:collect()};
+  try{
+    if(!artifact)artifact=await claude.use("artifact");
+    if(!artifact){msg.textContent="Saving is not available in this view. Open the page from your own claude.ai account.";btn.disabled=false;return}
+    await artifact.publish(buildDoc(state));
+  }catch(e){
+    msg.textContent=(e&&e.code==="conflict")?"Someone saved first. The page is reloading.":"Could not save ("+((e&&e.code)||"error")+"). Try again.";
+    btn.disabled=false;
+  }
+}
+render();
+})();
+</script>
