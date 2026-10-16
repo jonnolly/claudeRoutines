@@ -1,0 +1,13 @@
+{
+  "artifactUrl": "https://claude.ai/artifact/6thJFFhWkQnv2GP8pNGgRN",
+  "artifactFile": "daily-planner.html",
+  "answersStore": "artifact db, doc checkins/<YYYY-MM-DD> (read with ArtifactData). Fields: caps, themes, notes, newTasks, tasks[{id,choice,mustNotSlip,was}], applied",
+  "weekPlans": { "2026-10-19": { "status": "pending-user-answers", "askedOn": "2026-10-16" } },
+  "dailyCheckins": { "2026-10-16": "pending-user-answers" },
+  "schedule": "Mon 8h, Tue 2h, Wed 9-11, Thu 8h, Fri off. Monday = full week plan; if the week plan is missing, do it on the first run of that week.",
+  "nextRunTodo": [
+    "Read checkins/2026-10-16 from the artifact db. If applied=false, apply it in Todoist (reschedule-tasks for choice dates != was, complete-tasks for choice=done, add-tasks inbox for newTasks), then set applied=true.",
+    "Tasks with mustNotSlip=true get priority in the next daily list.",
+    "Never delete, archive or bury tasks without explicit permission."
+  ]
+}
