@@ -1,0 +1,316 @@
+<title>Morning Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one narrow working column; sticky capacity bar on top, questions, then a task table grouped by source, save bar at the bottom. */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --fg:#17211e; --muted:#5d6b66; --line:#d5dcd9;
+  --accent:#0b6b5d; --accent-fg:#ffffff; --warn:#a85a00; --warn-bg:#fbefdc; --bad:#b3261e; --ok:#1d7a3a; --ok-bg:#e0f2e6;
+  --font-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1715; --surface:#17211f; --fg:#e6eeeb; --muted:#93a39d; --line:#2b3a36;
+  --accent:#4fd1b8; --accent-fg:#06231d; --warn:#f0b35c; --warn-bg:#33270f; --bad:#ff8a80; --ok:#7fdc9a; --ok-bg:#14301d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1715; --surface:#17211f; --fg:#e6eeeb; --muted:#93a39d; --line:#2b3a36;
+  --accent:#4fd1b8; --accent-fg:#06231d; --warn:#f0b35c; --warn-bg:#33270f; --bad:#ff8a80; --ok:#7fdc9a; --ok-bg:#14301d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.45;
+  padding-block:20px 120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1{font-size:26px;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px;font-weight:600}
+.sub{color:var(--muted);margin:4px 0 0}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px}
+label.q{display:block;font-weight:600;margin-bottom:4px}
+.hint{color:var(--muted);font-size:13px;margin:0 0 6px}
+input[type=text],input[type=number],textarea,select{width:100%;box-sizing:border-box;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit}
+textarea{min-height:76px;resize:vertical}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.checks{display:flex;flex-direction:column;gap:8px}
+.checks label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.checks input{margin-top:3px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+.cap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px}
+.day{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 6px;text-align:center;min-width:0}
+.day b{display:block;font-size:12px;color:var(--muted);font-weight:600}
+.day .n{font-size:22px;font-weight:600;font-family:var(--font-mono)}
+.day small{display:block;font-size:11px;color:var(--muted)}
+.day.over{border-color:var(--warn);background:var(--warn-bg)}
+.day.over .n{color:var(--warn)}
+.grp{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.grp>h3{margin:0;padding:10px 14px;font-size:14px;background:var(--bg);border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:center}
+.row:last-child{border-bottom:0}
+.row .t{min-width:0;overflow-wrap:anywhere}
+.row .m{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-family:var(--font-mono);font-size:11px;border:1px solid var(--line);border-radius:99px;padding:0 7px}
+.pill.p1{color:var(--bad);border-color:var(--bad)}
+.pill.p2{color:var(--warn);border-color:var(--warn)}
+.row.sub1 .t{padding-left:18px;position:relative}
+.row.sub1 .t::before{content:"↳";position:absolute;left:2px;color:var(--muted)}
+.row.changed select{border-color:var(--accent)}
+@media (max-width:560px){.row{grid-template-columns:1fr}.cap{gap:4px}}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:6}
+.bar .in{max-width:860px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bar .st{flex:1;min-width:180px;font-size:13px;color:var(--muted)}
+button.go{background:var(--accent);color:var(--accent-fg);border:0;border-radius:8px;padding:11px 20px;font:inherit;font-weight:600;cursor:pointer}
+button.go:disabled{opacity:.5;cursor:default}
+.log{font-family:var(--font-mono);font-size:12px;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+.ok{color:var(--ok)} .err{color:var(--bad)}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.three{grid-template-columns:1fr}}
+.inline{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px}
+@media (max-width:560px){.inline{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Week 43 plan</h1>
+    <p class="sub">Monday 19 October. Mon full day, Tue 2h, Wed 9–11, Thu full day, Fri off. About 15 minutes. Nothing is deleted: every task keeps a date or stays in its project.</p>
+  </header>
+
+  <section>
+    <h2>1. This week</h2>
+    <div class="panel">
+      <div>
+        <label class="q" for="top1">Top 3 outcomes for the week</label>
+        <div class="three">
+          <input type="text" id="top1" placeholder="1">
+          <input type="text" id="top2" placeholder="2">
+          <input type="text" id="top3" placeholder="3">
+        </div>
+      </div>
+      <div>
+        <label class="q" for="maxday">Most tasks you want on one working day</label>
+        <p class="hint">The day boxes below turn amber above this number.</p>
+        <input type="number" id="maxday" min="1" max="20" value="6" style="max-width:100px">
+      </div>
+      <div>
+        <label class="q" for="remember">Reminders I must not lose this week</label>
+        <p class="hint">These are repeated back to you in every morning page until you clear them.</p>
+        <textarea id="remember" placeholder="One per line"></textarea>
+      </div>
+      <div>
+        <label class="q" for="waiting">Waiting on other people / blocked</label>
+        <textarea id="waiting" placeholder="e.g. NEP6-4 waiting for start signal from Jorge"></textarea>
+      </div>
+      <div class="checks" id="rules">
+        <label><input type="checkbox" id="r_roll" checked><span>Each morning, move unfinished tasks to the next working day. Nothing is deleted or undated without you ticking it here.</span></label>
+        <label><input type="checkbox" id="r_fri" checked><span>Friday is off: never schedule on Friday, shift Friday items to Thursday.</span></label>
+        <label><input type="checkbox" id="r_p1" checked><span>Always show p1 tasks and anything labelled Urgent or Blocker in the morning page, whatever day they are on.</span></label>
+        <label><input type="checkbox" id="r_short" checked><span>On Tue and Wed (2 hours) offer only 2 to 3 small tasks.</span></label>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Where each task goes</h2>
+    <p class="hint">Defaults are my suggestion. Change any dropdown. Tasks without a due date are set to "Leave as is".</p>
+    <div class="cap" id="cap"></div>
+    <div id="groups" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <section>
+    <h2>3. New tasks</h2>
+    <div class="panel">
+      <label class="q" for="newtasks">Anything missing? One new task per line, added to your Inbox.</label>
+      <div class="inline">
+        <textarea id="newtasks" placeholder="One per line"></textarea>
+        <div>
+          <label class="hint" for="newday">Schedule on</label>
+          <select id="newday"></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="resultSec" hidden>
+    <h2>Result</h2>
+    <div class="log" id="log"></div>
+  </section>
+</div>
+
+<div class="bar"><div class="in">
+  <div class="st" id="status">Answers are saved and applied to Todoist together.</div>
+  <button class="go" id="save" type="button">Save and apply to Todoist</button>
+</div></div>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<script>
+(function(){
+const DOC_PATH="plans/2026-W43";
+const DAYS=[
+ {k:"2026-10-19",l:"Mon 19",cap:"full day"},
+ {k:"2026-10-20",l:"Tue 20",cap:"2 hours"},
+ {k:"2026-10-21",l:"Wed 21",cap:"9–11am"},
+ {k:"2026-10-22",l:"Thu 22",cap:"full day"}];
+const OPTS=[...DAYS.map(d=>[d.k,d.l+" ("+d.cap+")"]),["2026-10-26","Next Mon 26"],["keep","Leave as is"],["nodate","Remove date (stays in project)"]];
+// id, title, project, priority, current due, default, labels/note, indent
+const T=[
+ ["Overdue and in the Inbox",[
+  ["6hjgj9Vjmmxj5jrf","bring laptop home (recurring Fridays)","Housekeeping","p4","Fri 16 Oct 16:55","2026-10-22",""],
+  ["6hjgj9Vvg2gcGfXf","log extra time","Housekeeping","p4","13 Oct","2026-10-20",""],
+  ["6hjgjgV8gqF6VVMf","Mill Unit test setup","Mill W150Fi","p4","13 Oct","2026-10-22",""],
+  ["6hjgjxgqw3C5jw3H","claude task automation","Continuous Integration","p4","13 Oct","2026-10-20",""],
+  ["6hjgjxvXvPpcRJ4q","switch to todoist","Continuous Integration","p2","15 Oct","2026-10-20","",1],
+  ["6hjhJhvq88fC4xxh","Implement a cloud routine project (W150Fi, Library, Bat manager, HX90)","Mill W150Fi","p4","13 Oct","2026-10-22",""],
+  ["6hjrVq5R7GXwj529","Process ideas & questions from package meeting","Continuous Integration","p1","15 Oct","2026-10-19",""],
+  ["6hm6JRH8hgW97PQh","CAT 1 battery charging","Inbox","p4","14 Oct","2026-10-22",""],
+  ["6hmMr3fqvGQGvCv9","migrate to Claude New Electric Team","Inbox","p4","15 Oct","2026-10-21",""]]],
+ ["Due today (Mon 19) — HX70 and CAT 330z",[
+  ["6hjgmQ7VXMxWX29j","Release a SOH version for the CAT","CAT 330z","p1","today","2026-10-19","CurrentSession"],
+  ["6hjgjP93GCg5R6f3","HX90 PR Request 14","HX70","p2","today","2026-10-19",""],
+  ["6hjgjP9W3CWCMwG3","pull request 14: \"This is what claude says: the two timers…\" (continue from where I got to)","HX70","p4","today","2026-10-19","NextSession",1],
+  ["6hjgjP9rgfp753j3","NEP6-4: Rogier mentioned you; blocked waiting for start signal from Jorge","HX70","p4","today","2026-10-19",""],
+  ["6hjgjPCw57PMrw9V","clean HX70 tasks so Rogier can pick them up","HX70","p4","today","2026-10-19","Blocker"],
+  ["6hjgmQ6xhpjF96HC","Isolation monitor - code review","CAT 330z","p3","today","2026-10-22",""],
+  ["6hjgmQ7Xxw86pj7j","frank code review of used energy (NEP6-33)","CAT 330z","p3","today","2026-10-26",""],
+  ["6hjgmQ85xRGQmR8C","frank code review null check errors","CAT 330z","p3","today","2026-10-26",""],
+  ["6hjgmQ8VmFF5p76j","frank code review temperature sensor","CAT 330z","p3","today","2026-10-26",""],
+  ["6hjgmQ8p3wmXXWXj","Review Claude sonarqube fixes (library PR 53)","CAT 330z","p4","today","2026-10-26","PullRequests"]]],
+ ["Due today (Mon 19) — Continuous Integration",[
+  ["6hjgjxgWPmGCPRJq","Update the software meeting template","Continuous Integration","p2","today","2026-10-20","Carlijn"],
+  ["6hjgjxgvHcRfmpGH","add label onto the plant “Carlijn the Continuous Integration Money Tree”","Continuous Integration","p3","today","2026-10-20","Carlijn"],
+  ["6hjgjxhmGc7RVcqq","update the “In Progress” items on All Projects Jira board","Continuous Integration","p3","today","2026-10-20","Carlijn"],
+  ["6hjgjxgx5RcFxMrH","add the Software Future Requirements to the Library Jira","Continuous Integration","p2","today","2026-10-21","Carlijn"],
+  ["6hjgjxjjXrHR3Vfq","do we have any parameters on the UDS linked to machine functionality?","Continuous Integration","p3","today","2026-10-21","Carlijn"],
+  ["6hjgjxjh8W8Q2R2q","re-jig holidays so Monday 15th June is sick leave","Continuous Integration","p3","today","2026-10-21",""],
+  ["6hjgjxhgmmMc4fFq","pull request 15 (HX90)","Continuous Integration","p2","today","2026-10-21",""],
+  ["6hjgjxm8h7XJ4h9q","pull request 2 (HX90_HVAC)","Continuous Integration","p2","today","2026-10-21",""],
+  ["6hjgjxhrHPXrjmfH","if we got paid, buy pcan explorer 7","Continuous Integration","p4","today","2026-10-26",""],
+  ["6hjgjxjXq8XGp8mq","set up new laptop","Continuous Integration","p3","today","2026-10-22",""],
+  ["6hjgjxm9hv9grq3q","migrate from old laptop","Continuous Integration","p3","today","2026-10-22",""],
+  ["6hjgjxrcC9QggpFH","after files have copied","Continuous Integration","p4","today","2026-10-22","",1],
+  ["6hjgm29wP4r7WvPq","auto-update to expansion","Continuous Integration","p1","today","2026-10-22","",1]]],
+ ["Already scheduled this week",[
+  ["6hjgj9c5Gg27jQ67","water plant (every 7 days, 09:30)","Housekeeping","p2","today 09:30","keep",""]]],
+ ["No date yet — urgent, blocker or high priority (pick any to schedule this week)",[
+  ["6hjgj9VXXRw3V5pf","catch up with time logging","Housekeeping","p1","no date","2026-10-20",""],
+  ["6hjgjPF68fJrfFJV","merge and test the remote flashing stuff for tomorrow's visit (library NEP006_HX70_main to main)","HX70","p1","no date","keep","Urgent"],
+  ["6hjgjP9xch7cJwH3","clean up implementation of UDS overrides","HX70","p2","no date","keep","Blocker"],
+  ["6hjgjPCvFrpvgJQV","fix the UDS OBS / display power configuration and merge to release candidate","HX70","p3","no date","keep","Blocker"],
+  ["6hjgjPCqf95MF3GV","test new variables on OBS (OBS Creator)","HX70","p2","no date","keep",""],
+  ["6hjgjP9ghHMFcP9V","OBS implement new isolation monitor","HX70","p2","no date","keep",""],
+  ["6hjgjPF2FGp96w43","OBS implement new welded contactor feedback","HX70","p2","no date","keep",""],
+  ["6hjgjP9PMhPCfXQV","(once low voltage is ready) check physical machine has everything needed to test","HX70","p2","no date","keep",""],
+  ["6hjgjPF7cG54qGj3","obs - second phase (warnings plan)","HX70","p2","no date","keep",""],
+  ["6hjgjPCmH38QF343","remote flashing: release files need to be in pdf format","HX70","p3","no date","keep",""],
+  ["6hjgjP94J28Grxj3","Flash all components (after low voltage is done)","HX70","p3","no date","keep",""],
+  ["6hjgj9W3CGxRQ2R7","buy equipment - Farnell / Mouser / RS","Housekeeping","p3","no date","keep",""],
+  ["6hjgj9X6H8xvrJjf","buy equipment - AliExpress","Housekeeping","p3","no date","keep",""],
+  ["6hjgj9Wrh8G48Xv7","automate invoice sending to shahbaz","Housekeeping","p3","no date","keep",""]]]
+];
+const $=id=>document.getElementById(id);
+const sel={}, cur={};  // id -> chosen key ; id -> default
+const byId={};
+
+function mk(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+
+// day select for new tasks
+OPTS.slice(0,5).forEach(([k,l])=>{const o=mk("option",null,l);o.value=k;$("newday").appendChild(o)});
+$("newday").value="2026-10-20";
+
+const groupsEl=$("groups");
+T.forEach(([title,rows])=>{
+  const g=mk("div","grp");g.appendChild(mk("h3",null,title));
+  rows.forEach(r=>{
+    const [id,t,proj,pri,due,def,lab,ind]=r;
+    byId[id]={id,t,def,due};
+    sel[id]=def;
+    const row=mk("div","row"+(ind?" sub1":""));
+    const left=mk("div","t");left.appendChild(document.createTextNode(t));
+    const m=mk("div","m");
+    m.appendChild(mk("span",null,proj));
+    if(pri!=="p4"){m.appendChild(mk("span","pill "+pri,pri))}
+    m.appendChild(mk("span","mono","due: "+due));
+    if(lab)m.appendChild(mk("span","pill","@"+lab));
+    left.appendChild(m);
+    const s=mk("select");s.id="sel_"+id;
+    OPTS.forEach(([k,l])=>{const o=mk("option",null,l);o.value=k;s.appendChild(o)});
+    s.value=def;
+    s.addEventListener("change",()=>{sel[id]=s.value;row.classList.toggle("changed",s.value!==def);renderCap()});
+    row.append(left,s);g.appendChild(row);
+    byId[id].row=row;byId[id].s=s;
+  });
+  groupsEl.appendChild(g);
+});
+
+function renderCap(){
+  const max=Math.max(1,parseInt($("maxday").value)||6);
+  const cap=$("cap");cap.textContent="";
+  DAYS.forEach(d=>{
+    const n=Object.values(sel).filter(v=>v===d.k).length;
+    const e=mk("div","day"+(n>max?" over":""));
+    e.append(mk("b",null,d.l),mk("div","n",String(n)),mk("small",null,d.cap));
+    cap.appendChild(e);
+  });
+  const e=mk("div","day");e.append(mk("b",null,"Next Mon"),mk("div","n",String(Object.values(sel).filter(v=>v==="2026-10-26").length)),mk("small",null,"26 Oct"));
+  cap.appendChild(e);
+}
+$("maxday").addEventListener("input",renderCap);
+renderCap();
+
+const FIELDS=["top1","top2","top3","maxday","remember","waiting","newtasks","newday"];
+const CHECKS=["r_roll","r_fri","r_p1","r_short"];
+function collect(){
+  const a={weekOf:"2026-10-19",savedAt:new Date().toISOString(),choices:{...sel},fields:{},rules:{}};
+  FIELDS.forEach(f=>a.fields[f]=$(f).value);
+  CHECKS.forEach(c=>a.rules[c]=$(c).checked);
+  return a;
+}
+function restore(a){
+  if(!a)return;
+  Object.entries(a.choices||{}).forEach(([id,v])=>{const b=byId[id];if(b&&b.s){b.s.value=v;sel[id]=v;b.row.classList.toggle("changed",v!==b.def)}});
+  Object.entries(a.fields||{}).forEach(([f,v])=>{if($(f))$(f).value=v});
+  Object.entries(a.rules||{}).forEach(([c,v])=>{if($(c))$(c).checked=!!v});
+  renderCap();
+}
+
+let db=null, mcp=null;
+(async()=>{
+  try{db=await window.claude.use("db")}catch(e){}
+  try{mcp=await window.claude.use("mcp")}catch(e){}
+  if(!mcp)$("status").textContent="Todoist access is unavailable in this view. Answers will be saved; Claude can apply them next run.";
+  if(db){try{const s=await db.doc(DOC_PATH).get();if(s.exists&&s.data().answers){restore(s.data().answers);if(s.data().applied)$("status").textContent="Already applied "+s.data().applied.at+". You can change and apply again."}}catch(e){}}
+})();
+
+function log(msg,cls){$("resultSec").hidden=false;const d=mk("div",cls||null,msg);$("log").appendChild(d)}
+function errText(e){return (e&&(e.code?e.code+": ":"")+(e.message||""))||String(e)}
+
+$("save").addEventListener("click",async()=>{
+  const btn=$("save");btn.disabled=true;$("log").textContent="";
+  const a=collect();
+  const result={at:new Date().toISOString(),rescheduled:[],undated:[],added:[],errors:[]};
+  // 1. save answers first so nothing is lost
+  if(db){try{await db.doc(DOC_PATH).set({answers:a,applied:null,tasks:Object.fromEntries(Object.values(byId).map(b=>[b.id,{t:b.t,due:b.due}]))});log("Answers saved.","ok")}catch(e){log("Could not save answers: "+errText(e),"err");result.errors.push("db")}}
+  else log("Answers not saved (no database in this view).","err");
+  // 2. apply to Todoist
+  if(mcp){
+    const resched=Object.values(byId).filter(b=>/^\d{4}-/.test(sel[b.id])).map(b=>({id:b.id,date:sel[b.id]}));
+    const undate=Object.values(byId).filter(b=>sel[b.id]==="nodate").map(b=>({id:b.id,dueString:"remove"}));
+    const lines=a.fields.newtasks.split("\n").map(s=>s.trim()).filter(Boolean);
+    const call=async(name,tool,input,okMsg)=>{
+      try{await mcp.callTool("Todoist",tool,input);log(okMsg,"ok");return true}
+      catch(e){log(name+" failed: "+errText(e),"err");result.errors.push(name);return false}};
+    // skip tasks whose chosen day already equals current (today items staying Mon)
+    const toMove=resched.filter(r=>!(byId[r.id].due==="today"&&r.date==="2026-10-19"));
+    if(toMove.length){
+      for(let i=0;i<toMove.length;i+=25){
+        const chunk=toMove.slice(i,i+25);
+        if(await call("Reschedule","reschedule-tasks",{tasks:chunk},"Rescheduled "+chunk.length+" tasks."))result.rescheduled.push(...chunk.map(c=>c.id));
+      }
+    }else log("No dates to change.");
+    if(undate.length){if(await call("Remove date","update-tasks",{tasks:undate},"Removed date from "+undate.length+" tasks (still in their projects)."))result.undated.push(...undate.map(c=>c.id))}
+    if(lines.length){
+      const tasks=lines.slice(0,25).map(c=>({content:c,projectId:"inbox",dueString:a.fields.newday}));
+      if(await call("Add tasks","add-tasks",{tasks},"Added "+tasks.length+" new tasks to Inbox."))result.added=lines.slice(0,25);
+    }
+  }else{log("Todoist is not reachable from this view. Nothing was changed there.","err");result.errors.push("mcp")}
+  if(db){try{await db.doc(DOC_PATH).update({applied:result})}catch(e){}}
+  $("status").textContent=result.errors.length?"Finished with errors. See the result log.":"Done. Todoist is updated and your answers are remembered.";
+  log(result.errors.length?"Some steps failed; nothing was deleted.":"All done.",result.errors.length?"err":"ok");
+  btn.disabled=false;
+});
+})();
+</script>
