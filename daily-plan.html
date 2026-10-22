@@ -1,0 +1,396 @@
+<title>Morning Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: single working column, a sticky capacity gauge on top, question blocks in the order of a 15-minute walk-through, sticky save bar at the bottom. */
+:root {
+  --bg: #f3f5f2;
+  --surface: #ffffff;
+  --ink: #17211d;
+  --muted: #5d6b64;
+  --line: #d6ddd8;
+  --accent: #0d6e5b;
+  --accent-ink: #ffffff;
+  --warn: #b5560a;
+  --warn-bg: #fbeedd;
+  --ok-bg: #e0f1ea;
+  --p1: #c42b2b;
+  --p2: #c9710f;
+  --p3: #2d5fc4;
+  --p4: #7b8780;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101714; --surface: #18221e; --ink: #e6ede9; --muted: #9bada5;
+    --line: #2b3a34; --accent: #46c4a6; --accent-ink: #08201a;
+    --warn: #f0a35a; --warn-bg: #3a2a16; --ok-bg: #15332a;
+    --p1: #ff7b7b; --p2: #f0a35a; --p3: #7ea6ff; --p4: #8c9a93;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101714; --surface: #18221e; --ink: #e6ede9; --muted: #9bada5;
+  --line: #2b3a34; --accent: #46c4a6; --accent-ink: #08201a;
+  --warn: #f0a35a; --warn-bg: #3a2a16; --ok-bg: #15332a;
+  --p1: #ff7b7b; --p2: #f0a35a; --p3: #7ea6ff; --p4: #8c9a93;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 96px; }
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 30px; font-weight: 700; }
+h2 { font-size: 20px; font-weight: 650; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+header.top { padding-top: 24px; display: flex; flex-direction: column; gap: 6px; }
+header.top p { margin: 0; color: var(--muted); max-width: 62ch; }
+.gauge { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; justify-content: space-between; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.gauge .count { font-family: var(--font-display); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gauge .meta { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gauge.over { border-color: var(--warn); background: var(--warn-bg); }
+.gauge.over .count { color: var(--warn); }
+section.block { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.block .sub { margin: 0; color: var(--muted); font-size: 14px; max-width: 64ch; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+label.q, .q { font-weight: 600; }
+textarea, input[type=text], input[type=date], input[type=number], select {
+  font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%; min-width: 0; }
+textarea { min-height: 72px; resize: vertical; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.seg span { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; background: var(--bg); cursor: pointer; }
+.seg input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg.done input:checked + span { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.task { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.task:first-of-type { border-top: 0; padding-top: 0; }
+.task-head { display: flex; gap: 10px; align-items: baseline; min-width: 0; }
+.pri { font-family: var(--font-mono); font-size: 11px; font-weight: 600; flex: none; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; }
+.pri.p1 { color: var(--p1); } .pri.p2 { color: var(--p2); } .pri.p3 { color: var(--p3); } .pri.p4 { color: var(--p4); }
+.title { font-weight: 600; overflow-wrap: anywhere; }
+.info { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.info .late { color: var(--warn); font-weight: 600; }
+.pickdate { max-width: 200px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+table.shape { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.shape th, table.shape td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+table.shape th { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.tablewrap { overflow-x: auto; }
+.check { display: flex; gap: 10px; align-items: flex-start; }
+.check input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+.savebar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); z-index: 6; }
+.savebar .in { max-width: 760px; margin: 0 auto; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+button.save { font: inherit; font-weight: 650; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 11px 20px; cursor: pointer; }
+button.save[disabled] { opacity: .55; cursor: progress; }
+.status { font-size: 13px; color: var(--muted); min-width: 0; flex: 1 1 200px; }
+#result { display: none; border: 1px solid var(--accent); background: var(--ok-bg); border-radius: 12px; padding: 16px; }
+#result.show { display: block; }
+#result ul { margin: 8px 0 0; padding-left: 18px; }
+#result li.err { color: var(--warn); }
+.hint { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .seg span { transition: background .12s, color .12s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow" id="dateline">Thursday 22 October 2026 · Week 43</div>
+    <h1>Morning plan</h1>
+    <p>About 10 minutes. Nothing here deletes or archives anything. Saving reschedules or completes only the tasks you choose, and stores your answers so tomorrow starts from them.</p>
+  </header>
+
+  <div class="gauge" id="gauge" aria-live="polite">
+    <div><span class="count" id="gCount">0</span> <span>planned for today</span></div>
+    <div class="meta" id="gMeta"></div>
+  </div>
+
+  <section class="block">
+    <div class="eyebrow">1 · How today looks</div>
+    <h2>Today is a full working day</h2>
+    <div class="field">
+      <div class="q" id="qEnergy">How much have you got in the tank?</div>
+      <div class="seg" role="radiogroup" aria-labelledby="qEnergy" id="energy">
+        <label><input type="radio" name="energy" value="full"><span>Full: up to 5 tasks</span></label>
+        <label><input type="radio" name="energy" value="normal" checked><span>Normal: up to 4</span></label>
+        <label><input type="radio" name="energy" value="low"><span>Low: up to 2</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label class="q" for="win">What would make today a win?</label>
+      <input type="text" id="win" placeholder="e.g. SOH release out, time log up to date">
+    </div>
+  </section>
+
+  <section class="block" id="blkToday">
+    <div class="eyebrow">2 · Due today and overdue</div>
+    <h2>Decide where each one lands</h2>
+    <p class="sub">Pre-selected by priority: p1 goes to today, small stuff goes to Monday (Friday is your day off). Change anything. "Leave" keeps it exactly as it is, still overdue.</p>
+    <div class="seg" id="bulkRow">
+      <button type="button" class="save" id="bulkMon" style="background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:6px 12px;font-weight:500">Send every non-p1 to Monday</button>
+    </div>
+    <div id="listToday"></div>
+  </section>
+
+  <section class="block" id="blkBacklog">
+    <div class="eyebrow">3 · From the backlog</div>
+    <h2>Anything worth pulling forward?</h2>
+    <p class="sub">The highest-priority undated tasks in your open projects, so they do not get buried. Pick Today or Monday to give one a date; leave the rest where they are.</p>
+    <div id="listBacklog"></div>
+  </section>
+
+  <section class="block">
+    <div class="eyebrow">4 · Week plan for week 43</div>
+    <h2>No week plan has been done yet, so this is it</h2>
+    <p class="sub">Only today is left to work this week; Friday is off. The rest of this block looks at next week so Monday starts planned.</p>
+    <div class="tablewrap">
+      <table class="shape">
+        <thead><tr><th>Next week</th><th>Hours</th><th>Big block goes to</th></tr></thead>
+        <tbody>
+          <tr><td>Mon 26</td><td>Full day</td><td><select id="focusMon" aria-label="Monday focus"></select></td></tr>
+          <tr><td>Tue 27</td><td>2 h</td><td><select id="focusTue" aria-label="Tuesday focus"></select></td></tr>
+          <tr><td>Wed 28</td><td>9–11</td><td><select id="focusWed" aria-label="Wednesday focus"></select></td></tr>
+          <tr><td>Thu 29</td><td>Full day</td><td><select id="focusThu" aria-label="Thursday focus"></select></td></tr>
+          <tr><td>Fri 30</td><td>Off</td><td>–</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="field">
+      <label class="q" for="promised">Anything promised to someone before the weekend?</label>
+      <textarea id="promised" placeholder="Names, what, and when. These go into Todoist as dated tasks for today."></textarea>
+    </div>
+    <div class="field">
+      <div class="q">Top 3 outcomes for next week</div>
+      <div class="hint">Each one is added to your Inbox as a task dated Monday.</div>
+      <input type="text" id="out1" placeholder="1" aria-label="Outcome 1">
+      <input type="text" id="out2" placeholder="2" aria-label="Outcome 2">
+      <input type="text" id="out3" placeholder="3" aria-label="Outcome 3">
+    </div>
+    <div class="field">
+      <label class="q" for="constraints">Fixed meetings, deadlines or trips next week</label>
+      <textarea id="constraints"></textarea>
+    </div>
+    <label class="check" for="weekDone"><input type="checkbox" id="weekDone" checked><span>Count this as the completed week plan for week 43, so Monday's session knows to start fresh.</span></label>
+  </section>
+
+  <section class="block">
+    <div class="eyebrow">5 · Anything else</div>
+    <h2>Catch what is in your head</h2>
+    <div class="field">
+      <label class="q" for="capture">New tasks, one per line</label>
+      <textarea id="capture" placeholder="Each line becomes a task in your Todoist Inbox with no date, so you can place it tomorrow."></textarea>
+    </div>
+    <div class="field">
+      <label class="q" for="notes">Notes for tomorrow's plan</label>
+      <textarea id="notes" placeholder="Blockers, things you are waiting on, things to push earlier."></textarea>
+    </div>
+  </section>
+
+  <section id="result" aria-live="polite"></section>
+</div>
+
+<div class="savebar"><div class="in">
+  <div class="status" id="status">Not saved yet.</div>
+  <button type="button" class="save" id="saveBtn">Save and apply to Todoist</button>
+</div></div>
+
+<script>
+(function () {
+  var TODAY = "2026-10-22", MON = "2026-10-26";
+  var PROJECTS = ["CAT 330z", "Mill W150Fi", "HX70", "Continuous Integration", "Housekeeping", "Productivity", "Admin / mixed"];
+  // kind: dated = already has a due date in Todoist; undated = none. def = pre-selected choice.
+  var TASKS = [
+    {id:"6hmMr3fqvGQGvCv9"},
+    {id:"6hjgmQ7VXMxWX29j", t:"Release a SOH version for the CAT", proj:"CAT 330z", pri:"p1", due:"Due today", dated:true, rec:false, est:null, group:"today", def:"today"},
+    {id:"6hpH7CmvJPcwV88h", t:"Get a solid impression of what's happening on the CAT", proj:"CAT 330z", pri:"p1", due:"Was Tue 20 Oct 09:00", dated:true, rec:false, est:60, group:"today", def:"today", late:true},
+    {id:"6hpGGpVjMC4MRp4h", t:"obs alerts pr", proj:"Continuous Integration", pri:"p1", due:"Was Tue 20 Oct 10:00", dated:true, rec:false, est:60, group:"today", def:"today", late:true},
+    {id:"6hpW8hH885pHpVx9", t:"CAT Tasks (see CAT board in Jira)", proj:"Inbox", pri:"p1", due:"Was Wed 21 Oct", dated:true, rec:false, est:null, group:"today", def:"today", late:true},
+    {id:"6hjgj9Vjmmxj5jrf", t:"bring laptop home", proj:"Housekeeping", pri:"p1", due:"Repeats every Friday 16:55, last due Mon 19 Oct", dated:true, rec:true, est:null, group:"today", def:"today", late:true, note:"Friday is your day off, so today is the last working day to remember it."},
+    {id:"6hjgj9Vvg2gcGfXf", t:"log extra time", proj:"Housekeeping", pri:"p4", due:"Was Tue 20 Oct 16:30", dated:true, rec:false, est:30, group:"today", def:"mon", late:true},
+    {id:"6hjgjgV8gqF6VVMf", t:"Mill Unit test setup", proj:"Mill W150Fi", pri:"p4", due:"Was Tue 20 Oct", dated:true, rec:false, est:null, group:"today", def:"mon", late:true},
+    {id:"6hpGQfqPxj7Cqr4h", t:"Mill Jenkins", proj:"Mill W150Fi", pri:"p4", due:"Was Tue 20 Oct", dated:true, rec:false, est:null, group:"today", def:"mon", late:true},
+    {id:"6hjgjxvXvPpcRJ4q", t:"switch to todoist", proj:"Continuous Integration", pri:"p2", due:"Was Wed 21 Oct", dated:true, rec:false, est:null, group:"today", def:"keep", late:true, note:"You are already using Todoist, so this may be finished. Pick Done to complete it, or move it."},
+    // backlog
+    {id:"6hjgj9VXXRw3V5pf", t:"catch up with time logging", proj:"Housekeeping", pri:"p1", due:"No date", dated:false, group:"backlog", def:"keep", est:null},
+    {id:"6hjgmQ82xcfMVJqC", t:"Lukas Steiner is asking about SOH: ask Morris whether to prioritise", proj:"CAT 330z", pri:"p1", due:"No date", dated:false, group:"backlog", def:"keep", est:null, note:"Fits with today's SOH release."},
+    {id:"6hjgjPF68fJrfFJV", t:"merge and test the remote flashing stuff for tomorrow's visit", proj:"HX70", pri:"p1", due:"No date", dated:false, group:"backlog", def:"keep", est:null, note:"Label Urgent. The wording says 'tomorrow's visit', so it may be old."},
+    {id:"6hjgmQ93ffR7jXGj", t:"Finalise CAT Battery Error", proj:"CAT 330z", pri:"p2", due:"No date", dated:false, group:"backlog", def:"keep", est:null},
+    {id:"6hjgmQ8wmXJ2PHGC", t:"Send Sidd the variable for Sendyne not responsive", proj:"CAT 330z", pri:"p2", due:"No date", dated:false, group:"backlog", def:"keep", est:null, note:"Looks like a quick one."},
+    {id:"6hjgmQ9Hc45FhwMC", t:"fix Battery Pack PLC unit tests", proj:"CAT 330z", pri:"p2", due:"No date", dated:false, group:"backlog", def:"keep", est:null},
+    {id:"6hjgjP93GCg5R6f3", t:"HX90 PR Request 14", proj:"HX70", pri:"p2", due:"No date", dated:false, group:"backlog", def:"keep", est:null},
+    {id:"6hjgjxhgmmMc4fFq", t:"pull request 15 (HX90)", proj:"Continuous Integration", pri:"p2", due:"No date", dated:false, group:"backlog", def:"keep", est:null},
+    {id:"6hjgjxh3JRFPpJjH", t:"fix jenkins authentication", proj:"Continuous Integration", pri:"p2", due:"No date", dated:false, group:"backlog", def:"keep", est:null},
+    {id:"6hjgjP9xch7cJwH3", t:"clean up implementation of UDS overrides", proj:"HX70", pri:"p2", due:"No date", dated:false, group:"backlog", def:"keep", est:null, note:"Label Blocker."}
+  ].filter(function (x) { return x.t; });
+
+  var ENERGY_CAP = {full: 5, normal: 4, low: 2};
+  var choice = {}, pickDate = {};
+  TASKS.forEach(function (t) { choice[t.id] = t.def; pickDate[t.id] = ""; });
+  var $ = function (id) { return document.getElementById(id); };
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function renderTask(t) {
+    var wrap = el("div", "task");
+    var head = el("div", "task-head");
+    head.appendChild(el("span", "pri " + t.pri, t.pri.toUpperCase()));
+    head.appendChild(el("span", "title", t.t));
+    wrap.appendChild(head);
+    var info = el("div", "info");
+    info.appendChild(el("span", t.late ? "late" : "", t.due));
+    info.appendChild(el("span", "", t.proj));
+    if (t.est) info.appendChild(el("span", "", "~" + t.est + " min"));
+    if (t.rec) info.appendChild(el("span", "", "recurring, kept"));
+    wrap.appendChild(info);
+    if (t.note) wrap.appendChild(el("div", "hint", t.note));
+    var opts = [["today", "Today"], ["mon", "Mon 26"], ["pick", "Pick date"], ["done", "Done"], ["keep", t.group === "backlog" ? "Leave" : "Leave as is"]];
+    var seg = el("div", "seg"); seg.setAttribute("role", "radiogroup"); seg.setAttribute("aria-label", "Where should this go: " + t.t);
+    opts.forEach(function (o) {
+      var l = document.createElement("label");
+      var i = document.createElement("input"); i.type = "radio"; i.name = "c_" + t.id; i.value = o[0]; i.checked = choice[t.id] === o[0];
+      i.addEventListener("change", function () { choice[t.id] = o[0]; syncPick(t.id); refresh(); });
+      var s = el("span", "", o[1]);
+      l.appendChild(i); l.appendChild(s); seg.appendChild(l);
+    });
+    wrap.appendChild(seg);
+    var d = document.createElement("input"); d.type = "date"; d.id = "d_" + t.id; d.className = "pickdate"; d.min = TODAY; d.hidden = true;
+    d.setAttribute("aria-label", "Date for " + t.t);
+    d.addEventListener("input", function () { pickDate[t.id] = d.value; refresh(); });
+    wrap.appendChild(d);
+    return wrap;
+  }
+  function syncPick(id) { var d = $("d_" + id); if (d) d.hidden = choice[id] !== "pick"; }
+
+  function build() {
+    var lt = $("listToday"), lb = $("listBacklog");
+    TASKS.forEach(function (t) { (t.group === "today" ? lt : lb).appendChild(renderTask(t)); syncPick(t.id); });
+    ["focusMon", "focusTue", "focusWed", "focusThu"].forEach(function (id) {
+      var s = $(id);
+      var blank = document.createElement("option"); blank.value = ""; blank.textContent = "Choose later"; s.appendChild(blank);
+      PROJECTS.forEach(function (p) { var o = document.createElement("option"); o.value = p; o.textContent = p; s.appendChild(o); });
+    });
+  }
+
+  function targetDate(t) {
+    var c = choice[t.id];
+    if (c === "today") return TODAY;
+    if (c === "mon") return MON;
+    if (c === "pick") return pickDate[t.id] || null;
+    return null;
+  }
+
+  function refresh() {
+    var cap = ENERGY_CAP[document.querySelector("input[name=energy]:checked").value];
+    var n = 0, mins = 0, unknown = 0;
+    TASKS.forEach(function (t) {
+      if (targetDate(t) === TODAY) { n++; if (t.est) mins += t.est; else unknown++; }
+    });
+    $("gCount").textContent = n + " / " + cap;
+    var h = Math.floor(mins / 60), m = mins % 60;
+    $("gMeta").textContent = "Estimated " + (h ? h + " h " : "") + m + " min on " + (n - unknown) + " task" + (n - unknown === 1 ? "" : "s") + (unknown ? " · " + unknown + " without an estimate" : "");
+    $("gauge").classList.toggle("over", n > cap);
+    if (n > cap) $("gMeta").textContent += " · over your limit, move something to Monday";
+  }
+
+  function gather() {
+    var o = {
+      date: TODAY, weekday: "Thursday", week: 43, savedAt: new Date().toISOString(),
+      energy: document.querySelector("input[name=energy]:checked").value,
+      win: $("win").value.trim(),
+      decisions: TASKS.map(function (t) { return {id: t.id, title: t.t, project: t.proj, priority: t.pri, choice: choice[t.id], date: targetDate(t)}; }),
+      weekPlan: {
+        done: $("weekDone").checked,
+        promised: $("promised").value.trim(),
+        outcomes: [$("out1").value.trim(), $("out2").value.trim(), $("out3").value.trim()].filter(Boolean),
+        constraints: $("constraints").value.trim(),
+        focus: {mon: $("focusMon").value, tue: $("focusTue").value, wed: $("focusWed").value, thu: $("focusThu").value}
+      },
+      capture: $("capture").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean),
+      notes: $("notes").value.trim()
+    };
+    return o;
+  }
+
+  function codeMsg(e) {
+    var c = e && e.code;
+    if (c === "not_in_manifest" || c === "approval_required" || c === "consent_required") return "Todoist access was not allowed for this page. Allow it in the page permissions and save again.";
+    if (c === "needs_reauth") return "Reconnect Todoist in claude.ai Settings, Connectors, then save again.";
+    if (c === "server_not_connected" || c === "selection_required") return "Todoist is not connected. Add it in claude.ai Settings, Connectors.";
+    if (c === "tool_error") return "Todoist refused: " + (e.message || "unknown reason");
+    return "Todoist call failed (" + (c || "unknown") + "). " + (e && e.message ? e.message : "");
+  }
+
+  var saving = false;
+  async function save() {
+    if (saving) return; saving = true;
+    var btn = $("saveBtn"); btn.disabled = true; $("status").textContent = "Saving answers…";
+    var ans = gather(), log = [];
+    // 1. Remember the answers first, so they survive any Todoist failure.
+    var remembered = false;
+    try {
+      var db = await claude.use("db");
+      if (db) { await db.doc("days/" + TODAY).set(ans); remembered = true; }
+    } catch (e) { /* reported below */ }
+    log.push({ok: remembered, text: remembered ? "Answers stored for tomorrow's plan." : "Could not store answers (database unavailable). Todoist changes below still apply."});
+
+    // 2. Apply to Todoist.
+    var mcp = null;
+    try { mcp = await claude.use("mcp"); } catch (e) {}
+    if (!mcp) {
+      log.push({ok: false, text: "Todoist connection is not available in this view. Open the page in claude.ai and save again."});
+    } else {
+      var resched = [], upd = [], done = [], moved = {today: 0, mon: 0, pick: 0};
+      TASKS.forEach(function (t) {
+        var c = choice[t.id];
+        if (c === "done") { done.push(t.id); return; }
+        var d = targetDate(t);
+        if (!d) { if (c === "pick") log.push({ok: false, text: "No date picked for \"" + t.t + "\", left unchanged."}); return; }
+        moved[c]++;
+        if (t.dated) resched.push({id: t.id, date: d}); else upd.push({id: t.id, dueString: d});
+      });
+      async function run(label, tool, input, okText) {
+        try { await mcp.callTool("Todoist", tool, input); log.push({ok: true, text: okText}); }
+        catch (e) { log.push({ok: false, text: label + ": " + codeMsg(e)}); }
+      }
+      if (resched.length) await run("Reschedule", "reschedule-tasks", {tasks: resched}, "Rescheduled " + resched.length + " dated task" + (resched.length === 1 ? "" : "s") + " (recurring ones keep their repeat).");
+      if (upd.length) await run("Set dates", "update-tasks", {tasks: upd}, "Gave " + upd.length + " backlog task" + (upd.length === 1 ? "" : "s") + " a date.");
+      if (done.length) await run("Complete", "complete-tasks", {ids: done}, "Marked " + done.length + " task" + (done.length === 1 ? "" : "s") + " done, as you chose.");
+      var adds = [];
+      ans.capture.forEach(function (line) { adds.push({content: line, projectId: "inbox"}); });
+      if (ans.weekPlan.promised) adds.push({content: "Promised before the weekend: " + ans.weekPlan.promised.split("\n")[0], projectId: "inbox", dueString: TODAY, priority: "p2", description: ans.weekPlan.promised});
+      ans.weekPlan.outcomes.forEach(function (o) { adds.push({content: "Week 44 outcome: " + o, projectId: "inbox", dueString: MON}); });
+      if (adds.length) await run("Add tasks", "add-tasks", {tasks: adds}, "Added " + adds.length + " new task" + (adds.length === 1 ? "" : "s") + " to your Inbox.");
+      if (!resched.length && !upd.length && !done.length && !adds.length) log.push({ok: true, text: "No Todoist changes were needed."});
+    }
+    var box = $("result"); box.innerHTML = ""; box.classList.add("show");
+    var anyErr = log.some(function (l) { return !l.ok; });
+    box.appendChild(el("strong", "", anyErr ? "Saved, with problems" : "Saved and applied"));
+    var ul = el("ul");
+    log.forEach(function (l) { ul.appendChild(el("li", l.ok ? "" : "err", l.text)); });
+    box.appendChild(ul);
+    box.scrollIntoView({behavior: "smooth", block: "center"});
+    $("status").textContent = anyErr ? "Some steps failed. Fix the cause and save again; repeating is safe." : "Saved. Nothing was deleted or archived.";
+    btn.disabled = false; saving = false;
+  }
+
+  build(); refresh();
+  document.querySelectorAll("input[name=energy]").forEach(function (i) { i.addEventListener("change", refresh); });
+  $("saveBtn").addEventListener("click", save);
+  $("bulkMon").addEventListener("click", function () {
+    TASKS.forEach(function (t) {
+      if (t.group === "today" && t.pri !== "p1") {
+        choice[t.id] = "mon";
+        var r = document.querySelector("input[name=c_" + t.id + "][value=mon]"); if (r) r.checked = true; syncPick(t.id);
+      }
+    });
+    refresh();
+  });
+})();
+</script>
