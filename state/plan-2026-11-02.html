@@ -1,0 +1,297 @@
+<title>Daily Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Bricolage+Grotesque:wght@600;700&display=swap">
+<style>
+/* Layout: one column "logbook" — header with week load strip, then numbered-by-need sections of rows with a destination selector each, then free text, then a sticky save bar. */
+:root{
+  --bg:#f2f4f6; --surface:#ffffff; --ink:#14202b; --muted:#5b6b78; --line:#d6dde3;
+  --accent:#1f4fd8; --accent-ink:#ffffff; --ok:#1b7f4c; --warn:#b7791f; --bad:#b4372f; --chip:#e6ebf0;
+  --f-display:'Bricolage Grotesque','IBM Plex Sans',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f151b; --surface:#17202a; --ink:#e7edf2; --muted:#93a3b1; --line:#2a3744;
+  --accent:#6f95ff; --accent-ink:#0b1220; --ok:#4cc38a; --warn:#e0a94a; --bad:#f08077; --chip:#223040; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151b; --surface:#17202a; --ink:#e7edf2; --muted:#93a3b1; --line:#2a3744;
+  --accent:#6f95ff; --accent-ink:#0b1220; --ok:#4cc38a; --warn:#e0a94a; --bad:#f08077; --chip:#223040; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);margin:0;
+  padding-block:20px 120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:700 30px/1.1 var(--f-display);margin:0;text-wrap:balance}
+h2{font:600 18px/1.2 var(--f-display);margin:0}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);margin:6px 0 0;max-width:62ch}
+.promise{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:14px}
+.week{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0}
+.day .n{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.day .c{font:700 24px var(--f-display);font-variant-numeric:tabular-nums}
+.day .h{font-size:12px;color:var(--muted)}
+.day.off{opacity:.6}
+.day.over .c{color:var(--bad)} .day.full .c{color:var(--warn)}
+.bar{height:4px;background:var(--chip);border-radius:2px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.day.over .bar i{background:var(--bad)}
+section{display:flex;flex-direction:column;gap:10px}
+.sec-h{display:flex;flex-direction:column;gap:2px}
+.sec-h p{margin:0;color:var(--muted);font-size:14px;max-width:62ch}
+.rows{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px 14px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.t{min-width:0}
+.t b{font-weight:500;overflow-wrap:anywhere}
+.meta{font:400 12px var(--f-mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:2px}
+.pri{color:var(--bad)} .pri2{color:var(--warn)}
+select,textarea,input[type=text]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 8px;width:100%}
+textarea{min-height:76px;resize:vertical}
+select:focus-visible,textarea:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.fixed{font:500 12px var(--f-mono);color:var(--muted)}
+label.chk{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-top:1px solid var(--line);cursor:pointer}
+label.chk:first-child{border-top:0}
+label.chk input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent)}
+.field{padding:12px 14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.field:first-child{border-top:0}
+.field label{font-weight:500}
+.hint{font-size:13px;color:var(--muted)}
+.bar-save{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:5}
+.bar-in{max-width:760px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#status{flex:1 1 220px;font-size:13px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+button.primary{font:600 15px var(--f-body);background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:11px 20px;cursor:pointer}
+button.primary:disabled{opacity:.55;cursor:default}
+button.ghost{font:500 13px var(--f-body);background:none;color:var(--accent);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.res{font:400 12px var(--f-mono)} .res .ok{color:var(--ok)} .res .bad{color:var(--bad)}
+@media (max-width:560px){
+  .row{grid-template-columns:1fr}
+  .week{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+  .day{padding:8px 6px}.day .c{font-size:20px}.day .h{font-size:11px}
+}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .2s}}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Mon 2 Nov 2026 · Week 45 · full week plan</div>
+    <h1>Plan the week, then the day</h1>
+    <p class="lede">Pick a day for each item. Selectors start on my suggestion. Leave one on "Leave as is" and it does not change. About 10 minutes.</p>
+  </header>
+
+  <div class="promise">Nothing here deletes, archives or completes a task. Choices only change due dates. About 130 other undated backlog tasks are not touched.</div>
+
+  <div>
+    <div class="eyebrow" style="margin-bottom:6px">Work items per day, live from your choices</div>
+    <div class="week" id="week"></div>
+  </div>
+
+  <section>
+    <div class="sec-h"><h2>1. Missed since Thursday</h2><p>These slipped past their date. Habits and weekly tasks keep their repeat schedule when moved.</p></div>
+    <div class="rows" id="s-overdue"></div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>2. Already on today and this week</h2><p>Monday is a full day, and it already holds five or more things. Move what will not fit.</p></div>
+    <div class="rows" id="s-today"></div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>3. Pull from the backlog</h2><p>High priority and blocker items with no date. Unchosen ones stay undated and safe.</p></div>
+    <div class="rows" id="s-backlog"></div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>4. In your words</h2></div>
+    <div class="rows">
+      <div class="field"><label for="w-top3">What must be true by Thursday evening?</label>
+        <textarea id="w-top3" placeholder="e.g. Remote flashing merged. Jenkins pipeline green."></textarea></div>
+      <div class="field"><label for="w-new">Anything new to remember? One per line.</label>
+        <textarea id="w-new" placeholder="Each line becomes an Inbox task."></textarea>
+        <div class="hint">Due date for these:</div>
+        <select id="w-new-day"><option value="mon">Mon 2 Nov</option><option value="tue">Tue 3 Nov</option><option value="wed">Wed 4 Nov</option><option value="thu">Thu 5 Nov</option><option value="next">Mon 9 Nov</option><option value="none">No date</option></select></div>
+      <div class="field"><label for="w-block">Blocked, waiting on someone, or worrying you?</label>
+        <textarea id="w-block" placeholder="I read this tomorrow and plan around it."></textarea></div>
+      <div class="field"><label for="w-energy">Energy today</label>
+        <select id="w-energy"><option value="">Not saying</option><option value="high">High, stretch me</option><option value="ok">Normal</option><option value="low">Low, keep it light</option></select></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>5. Safety net</h2></div>
+    <div class="rows">
+      <label class="chk"><input type="checkbox" id="c-sweep" checked><span><b>Add a 15 min "Backlog sweep" to Thursday</b><br><span class="hint">A weekly look at everything undated so nothing gets buried.</span></span></label>
+      <label class="chk"><input type="checkbox" id="c-light" checked><span><b>Keep tomorrow's check-in under 5 minutes</b><br><span class="hint">Tuesday and Wednesday only show their own items and anything overdue.</span></span></label>
+      <label class="chk"><input type="checkbox" id="c-carry"><span><b>Ask me before moving anything again</b><br><span class="hint">Tomorrow's page lists items I would push on. I only move them when you say so.</span></span></label>
+    </div>
+  </section>
+</main>
+
+<div class="bar-save"><div class="bar-in">
+  <div id="status">Not saved yet.</div>
+  <button class="ghost" id="retry" hidden>Retry failed</button>
+  <button class="primary" id="save">Save and apply to Todoist</button>
+</div></div>
+
+<script>
+const D = {
+  mon:{label:'Mon',full:'Mon 2 Nov',date:'2026-11-02',cap:6,h:'Full day'},
+  tue:{label:'Tue',full:'Tue 3 Nov',date:'2026-11-03',cap:2,h:'2 hours'},
+  wed:{label:'Wed',full:'Wed 4 Nov',date:'2026-11-04',cap:2,h:'09:00-11:00'},
+  thu:{label:'Thu',full:'Thu 5 Nov',date:'2026-11-05',cap:6,h:'Full day'},
+  fri:{label:'Fri',full:'Fri 6 Nov',date:'2026-11-06',cap:0,h:'Day off'},
+  next:{full:'Mon 9 Nov',date:'2026-11-09'}
+};
+// cur: where it sits now. def: my suggestion ('keep' = no change). due: has a due date in Todoist.
+const OVERDUE=[
+ {id:'6hjgmPQpXhjC7x5j-x',tid:'6hrfHfxPp47WrX4h',t:'CAT Precharge bug fixes',m:['CAT 330z','was Thu 15:30','1h'],cur:'over',def:'mon',due:1},
+ {tid:'6hrfFfmhwhqp2Fqh',t:'Implement suggestions from Claude Code Reviewing',m:['Productivity','marked "important asap"'],cur:'over',def:'tue',due:1,p:2},
+ {tid:'6hqwqMJpfFw84Pp7',t:'Log extra time',m:['Housekeeping','was Thu 16:30','30m','4 entries waiting in the note'],cur:'over',def:'tue',due:1},
+ {tid:'6hjgj9Vjmmxj5jrf',t:'Bring laptop home (repeats every Fri 16:55)',m:['Housekeeping','p1','repeats'],cur:'over',def:'thu',due:1,p:1,rec:1},
+ {tid:'6hq2v7gc8xGwV4JC',t:'Morning gratitude (repeats Mon, Thu)',m:['Habits','repeats'],cur:'over',def:'mon',due:1,rec:1}
+];
+const TODAY=[
+ {tid:'6hqwqvq24wcvVCr9',t:'CAT Sendyne & Bugs',m:['CAT 330z','08:00','2h'],cur:'mon',def:'keep',due:1},
+ {tid:'6hmMr3fqvGQGvCv9',t:'Migrate to Claude New Electric Team',m:['Housekeeping','16:30','30m'],cur:'mon',def:'keep',due:1},
+ {tid:'6hpxvGxX4mJ4PCMh',t:'Pull Requests (repeats Mon, Thu)',m:['Continuous Integration','repeats'],cur:'mon',def:'keep',due:1,rec:1},
+ {tid:'6hjgjxgqw3C5jw3H',t:'Claude task automation',m:['Continuous Integration'],cur:'mon',def:'keep',due:1},
+ {tid:'6hrfGc2pG5HfP6xh',t:'Set up docker',m:['Continuous Integration','registry login + pull steps in the note'],cur:'mon',def:'thu',due:1},
+ {tid:'6hrfGMPGV27JQxJh',t:'Migrate staff folder',m:['Inbox'],cur:'mon',def:'tue',due:1},
+ {tid:'6hq3Rx4hG8mP48Mh',t:'(if Sendyne stuff done) merge UDS OBS power stuff',m:['HX70','conditional'],cur:'mon',def:'keep',due:1},
+ {tid:'6hq2mfcrc694VRwh',t:'Software meeting (repeats Thu 14:00)',m:['Continuous Integration','1h','fixed time'],cur:'thu',def:'keep',due:1,rec:1,fixed:1}
+];
+const BACK=[
+ {tid:'6hjgjPF68fJrfFJV',t:'Merge and test the remote flashing stuff',m:['HX70','p1','Urgent','note says "for tomorrow\'s visit", check if still live'],cur:'none',def:'keep',p:1},
+ {tid:'6hjgj9VXXRw3V5pf',t:'Catch up with time logging',m:['Housekeeping','p1'],cur:'none',def:'keep',p:1},
+ {tid:'6hjgjP9xch7cJwH3',t:'Clean up implementation of UDS overrides',m:['HX70','p2','Blocker'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjPCvFrpvgJQV',t:'Fix the UDS OBS / display power configuration and merge to release candidate',m:['HX70','p3','Blocker'],cur:'none',def:'keep'},
+ {tid:'6hjgjP93GCg5R6f3',t:'HX90 PR Request 14',m:['HX70','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxhgmmMc4fFq',t:'Pull request 15 (HX90)',m:['Continuous Integration','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxm8h7XJ4h9q',t:'Pull request 2 (HX90_HVAC)',m:['Continuous Integration','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxh3JRFPpJjH',t:'Fix Jenkins authentication',m:['Continuous Integration','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxjpJqxp8j6H',t:'Fix Jenkins pipeline',m:['Continuous Integration','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxm64QRc82PH',t:'Get Morris set up on Git Extensions so he can pull PCAN projects',m:['Continuous Integration','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxj5R893vQ6H',t:'Fix debugging on Visual Studio Code',m:['Continuous Integration','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxhfmR7RPJCH',t:'Add batman unit tests to run on Jenkins (1)',m:['Continuous Integration','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjPF2FGp96w43',t:'OBS: implement new welded contactor feedback',m:['HX70','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjP9ghHMFcP9V',t:'OBS: implement new isolation monitor',m:['HX70','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjPCqf95MF3GV',t:'Test new variables on OBS',m:['HX70','p2'],cur:'none',def:'keep',p:2},
+ {tid:'6hjgjxjccJhJ9hwq',t:'Google Calendar meeting notifications are not strong enough',m:['Continuous Integration','p3','affects reminders'],cur:'none',def:'keep'}
+];
+const ALL=[...OVERDUE,...TODAY,...BACK];
+const $=s=>document.querySelector(s);
+const OPTS=[['keep','Leave as is'],['mon','Mon 2 Nov'],['tue','Tue 3 Nov'],['wed','Wed 4 Nov'],['thu','Thu 5 Nov'],['next','Mon 9 Nov']];
+
+function rowHtml(it,i){
+  const meta=it.m.map(x=>`<span class="${x==='p1'?'pri':x==='p2'?'pri2':''}">${x}</span>`).join('');
+  const ctl=it.fixed?'<span class="fixed">Fixed time</span>':
+   `<select id="sel-${it.tid}" aria-label="Day for ${it.t.replace(/"/g,'')}">${OPTS.map(o=>`<option value="${o[0]}"${o[0]===it.def?' selected':''}>${o[0]==='keep'?(it.cur==='over'?'Leave overdue':it.cur==='none'?'Leave undated':'Leave as is'):o[1]}</option>`).join('')}</select>`;
+  return `<div class="row"><div class="t"><b>${it.t}</b><div class="meta">${meta}</div></div><div>${ctl}</div></div>`;
+}
+$('#s-overdue').innerHTML=OVERDUE.map(rowHtml).join('');
+$('#s-today').innerHTML=TODAY.map(rowHtml).join('');
+$('#s-backlog').innerHTML=BACK.map(rowHtml).join('');
+
+function eff(it){
+  if(it.fixed) return it.cur;
+  const v=$('#sel-'+it.tid).value;
+  return v==='keep'?it.cur:v;
+}
+function renderWeek(){
+  const cnt={mon:0,tue:0,wed:0,thu:0,fri:0};
+  ALL.forEach(it=>{const d=eff(it);if(d in cnt)cnt[d]++;});
+  $('#week').innerHTML=['mon','tue','wed','thu','fri'].map(k=>{
+    const d=D[k],n=cnt[k];
+    const cls=d.cap===0?'off':n>d.cap?'over':n===d.cap?'full':'';
+    const pct=d.cap?Math.min(100,n/d.cap*100):0;
+    return `<div class="day ${cls}"><div class="n">${d.label}</div><div class="c">${n}<span class="h"> / ${d.cap||'-'}</span></div><div class="h">${d.h}</div><div class="bar"><i style="width:${pct}%"></i></div></div>`;
+  }).join('');
+}
+document.addEventListener('change',e=>{if(e.target.matches('select[id^=sel-]'))renderWeek();});
+renderWeek();
+
+/* ---- save ---- */
+const SERVER='Todoist';
+const TODAYKEY='2026-11-02';
+let dbRef=null, lastOps=null;
+function setStatus(h){$('#status').innerHTML=h;}
+function collect(){
+  const sel={};ALL.forEach(it=>{if(!it.fixed)sel[it.tid]=$('#sel-'+it.tid).value;});
+  return {date:TODAYKEY,kind:'week',sel,
+    top3:$('#w-top3').value,newItems:$('#w-new').value,newDay:$('#w-new-day').value,
+    blockers:$('#w-block').value,energy:$('#w-energy').value,
+    sweep:$('#c-sweep').checked,light:$('#c-light').checked,askBeforeMoving:$('#c-carry').checked};
+}
+function buildOps(a){
+  const resched=[],upd=[],add=[],names={};
+  ALL.forEach(it=>{
+    const v=a.sel[it.tid];if(!v||v==='keep')return;
+    names[it.tid]=it.t;
+    if(it.due) resched.push({id:it.tid,date:D[v].date});
+    else upd.push({id:it.tid,dueString:D[v].date});
+  });
+  a.newItems.split('\n').map(s=>s.trim()).filter(Boolean).forEach(s=>{
+    const o={content:s,projectId:'inbox'};if(a.newDay!=='none')o.dueString=D[a.newDay].date;add.push(o);});
+  if(a.sweep)add.push({content:'Backlog sweep: scan undated tasks, nothing buried',projectId:'inbox',dueString:'2026-11-05',duration:'15m',priority:'p3'});
+  return {resched,upd,add};
+}
+async function run(ops,only){
+  const mcp=await claude.use('mcp');
+  const res={};
+  if(!mcp){return {_all:'unavailable'};}
+  const groups=[['resched','reschedule-tasks','tasks'],['upd','update-tasks','tasks'],['add','add-tasks','tasks']];
+  for(const [k,tool,key] of groups){
+    if(!ops[k].length||(only&&!only.includes(k)))continue;
+    try{await mcp.callTool(SERVER,tool,{[key]:ops[k]});res[k]='ok';}
+    catch(e){res[k]=(e&&e.code)||'error';}
+  }
+  return res;
+}
+function report(res,ops){
+  if(res._all){
+    setStatus('Your answers are saved, but the Todoist connector is not available in this view. The next scheduled run applies them.');return;}
+  const lab={resched:'Dates moved',upd:'Dates set',add:'Tasks added'};
+  const parts=Object.keys(res).map(k=>`<span class="${res[k]==='ok'?'ok':'bad'}">${lab[k]}: ${res[k]==='ok'?ops[k].length+' done':'failed ('+res[k]+')'}</span>`);
+  const failed=Object.keys(res).filter(k=>res[k]!=='ok');
+  setStatus('<span class="res">'+(parts.join(' · ')||'No Todoist changes needed.')+'</span>'+(failed.length?'':'<br>Saved. See you tomorrow.'));
+  $('#retry').hidden=!failed.length;
+  lastOps={ops,failed};
+}
+async function persist(a,status){
+  try{
+    const db=await claude.use('db');if(!db)return;
+    await db.doc('sessions/'+a.date).set({...a,status,savedAt:new Date().toISOString()});
+    await db.doc('memory/latest').set({date:a.date,kind:a.kind,top3:a.top3,blockers:a.blockers,energy:a.energy,light:a.light,askBeforeMoving:a.askBeforeMoving,status});
+  }catch(e){}
+}
+$('#save').addEventListener('click',async()=>{
+  const b=$('#save');b.disabled=true;setStatus('Saving...');
+  const a=collect();const ops=buildOps(a);
+  await persist(a,'pending');
+  setStatus('Applying to Todoist...');
+  const res=await run(ops);
+  const ok=!res._all&&Object.values(res).every(v=>v==='ok');
+  await persist(a,ok?'applied':'pending');
+  report(res,ops);b.disabled=false;
+});
+$('#retry').addEventListener('click',async()=>{
+  if(!lastOps)return;setStatus('Retrying...');
+  const res=await run(lastOps.ops,lastOps.failed);
+  const a=collect();const ok=Object.values(res).every(v=>v==='ok');
+  await persist(a,ok?'applied':'pending');report(res,lastOps.ops);
+});
+/* restore earlier answers on reopen */
+(async()=>{
+  try{
+    const db=await claude.use('db');if(!db)return;
+    const s=await db.doc('sessions/'+TODAYKEY).get();if(!s.exists)return;
+    const a=s.data();
+    Object.entries(a.sel||{}).forEach(([k,v])=>{const el=document.getElementById('sel-'+k);if(el)el.value=v;});
+    $('#w-top3').value=a.top3||'';$('#w-block').value=a.blockers||'';$('#w-energy').value=a.energy||'';
+    $('#c-sweep').checked=!!a.sweep;$('#c-light').checked=!!a.light;$('#c-carry').checked=!!a.askBeforeMoving;
+    renderWeek();
+    setStatus(a.status==='applied'?'Saved and applied earlier. Edit and save again to change more.':'Answers saved. Todoist changes are still pending.');
+  }catch(e){}
+})();
+</script>
