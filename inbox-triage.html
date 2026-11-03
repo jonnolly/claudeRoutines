@@ -1,0 +1,62 @@
+<title>Inbox Triage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: single column checklist, grouped by urgency, status stripe per group */
+:root{--bg:#f6f7f9;--fg:#1c2230;--muted:#5d667a;--card:#fff;--line:#dde1ea;--urgent:#c0392b;--action:#b9770e;--fyi:#2563a8;--low:#6b7280;--accent:#2563a8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--fg:#e6e9f0;--muted:#98a1b5;--card:#1b202b;--line:#2e3545;--urgent:#ef6a5b;--action:#e0a443;--fyi:#6aa6e8;--low:#9099ab;--accent:#6aa6e8;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151c;--fg:#e6e9f0;--muted:#98a1b5;--card:#1b202b;--line:#2e3545;--urgent:#ef6a5b;--action:#e0a443;--fyi:#6aa6e8;--low:#9099ab;--accent:#6aa6e8;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--muted);margin:2px 0 0;font-size:13px}
+h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 8px;color:var(--c)}
+section{--c:var(--low)}
+.urgent{--c:var(--urgent)}.action{--c:var(--action)}.fyi{--c:var(--fyi)}.low{--c:var(--low)}
+.item{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:10px 12px;margin-bottom:8px}
+label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+input[type=checkbox]{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
+input:checked+span{text-decoration:line-through;color:var(--muted)}
+.meta{display:block;color:var(--muted);font-size:12px}
+details{margin:6px 0 0 28px;font-size:14px}
+summary{cursor:pointer;color:var(--accent)}
+pre{white-space:pre-wrap;font:13px/1.5 system-ui,sans-serif;background:var(--bg);border:1px solid var(--line);padding:8px 10px;border-radius:6px;margin:6px 0 0}
+</style>
+<main>
+<header><h1>Inbox Triage</h1><p class="sub">Run of 3 Nov 2026 · 3 unread · 0 archived by backlog rules</p></header>
+
+<section class="urgent"><h2>Urgent</h2>
+<div class="item"><label><input type="checkbox" id="c1"><span>Todoist reports a new device login on your account (2 Nov, 18:21 UTC). Confirm it was you, otherwise change your password.<span class="meta">no-reply@todoist.com</span></span></label>
+<details><summary>Suggested action</summary><pre>No reply needed. If unrecognised: change the Todoist password, log out of all sessions, and enable 2FA.</pre></details></div>
+</section>
+
+<section class="action"><h2>Action needed</h2>
+<div class="item"><label><input type="checkbox" id="c2"><span>Rogier van Rooijen assigned Jira ticket NEP006-101 to you (28 Oct).<span class="meta">jira@newelectric.atlassian.net</span></span></label>
+<details><summary>Draft reply</summary><pre>Hi Rogier,
+
+Thanks for assigning NEP006-101. I'll review it this week and update the ticket with a plan and timing by Friday.
+
+Best,
+John</pre></details></div>
+</section>
+
+<section class="fyi"><h2>FYI</h2>
+<div class="item"><label><input type="checkbox" id="c3"><span>Celso shared datasheets for CAN bus sensors (Honeywell BES, Metis Engineering) for detecting cell thermal runaway (10 Sep, unread).<span class="meta">celso@newelectric.nl</span></span></label></div>
+<div class="item"><label><input type="checkbox" id="c4"><span>Kept from TLDR Dev (27 Oct): how the Claude Code team does code review, plus a Cloudflare Workers AI cross-request cache exposure write-up.<span class="meta">dan@tldrnewsletter.com</span></span></label></div>
+</section>
+
+<section class="low"><h2>Low priority</h2>
+<div class="item"><label><input type="checkbox" id="c5"><span>Atlassian marketing email: "3 prompts made just for you". Safe to archive.<span class="meta">noreply@po.atlassian.net</span></span></label></div>
+</section>
+
+<section class="fyi"><h2>Today's backlog question</h2>
+<div class="item"><label><input type="checkbox" id="c6"><span>You have about 12 threads with OBS Systems (gorrik@, ayosid@) about DBC files, CAN variables, firmware, BMS suspended mode, contactors and similar. Are these resolved, so I can archive them all next run? Reply yes or no.<span class="meta">Backlog rules matched nothing else today (nothing automated older than 2 weeks).</span></span></label></div>
+</section>
+</main>
+<script>
+const K="inbox-triage-2026-11-03";let st={};
+try{st=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+document.querySelectorAll('input[type=checkbox]').forEach(b=>{
+b.checked=!!st[b.id];
+b.addEventListener('change',()=>{st[b.id]=b.checked;try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}});
+});
+</script>
