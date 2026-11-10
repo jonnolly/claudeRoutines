@@ -1,0 +1,83 @@
+<title>Inbox Checklist</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: single narrow column, category sections, tickable rows with collapsible drafts */
+:root{--bg:#f6f7f5;--fg:#1d2321;--mute:#5d6862;--line:#d9ded9;--card:#fff;--accent:#1f6f5c;--urgent:#b3261e;--action:#a15c00;--fyi:#2f5f9e;--low:#6b7280;--font:"Inter",system-ui,sans-serif;--head:"Space Grotesk","Inter",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121715;--fg:#e6ebe8;--mute:#98a39d;--line:#2b3430;--card:#1a211e;--accent:#58c4a5;--urgent:#ff8a80;--action:#ffb454;--fyi:#8fb8f0;--low:#9aa1ab;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121715;--fg:#e6ebe8;--mute:#98a39d;--line:#2b3430;--card:#1a211e;--accent:#58c4a5;--urgent:#ff8a80;--action:#ffb454;--fyi:#8fb8f0;--low:#9aa1ab;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--font);padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:600 26px/1.2 var(--head);margin:0;text-wrap:balance}
+.sub{color:var(--mute);margin:4px 0 0}
+h2{font:600 13px var(--head);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;display:flex;gap:8px;align-items:center}
+h2 i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+li{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:var(--accent);flex:none}
+label span{min-width:0}
+b{font-weight:600}
+.who{color:var(--mute);font-size:13px}
+input:checked~span{opacity:.55;text-decoration:line-through}
+details{margin:8px 0 0 30px}
+summary{cursor:pointer;color:var(--accent);font-size:13px}
+pre{white-space:pre-wrap;font:13px/1.5 var(--font);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;margin:6px 0 0}
+.empty{color:var(--mute);font-style:italic}
+.note{color:var(--mute);font-size:13px}
+</style>
+<main>
+<header><h1>Inbox checklist, 10 Nov 2026</h1><p class="sub">10 unread threads reviewed. Ticks are saved.</p></header>
+
+<section style="--c:var(--urgent)"><h2><i></i>Urgent</h2><ul><li class="empty">Nothing urgent today.</li></ul></section>
+
+<section style="--c:var(--action)"><h2><i></i>Action needed</h2><ul>
+<li><label><input type="checkbox" data-id="niels"><span><b>Zeppelin: 330 XNB20126 Pack2 precharge timeout.</b> Niels confirms your write-up is clear and has escalated it to Suncar with your documents; he will report back after checking their logs.<br><span class="who">Niels van Gurp, 6:18 today (reply is addressed to Sidd/service@, you are cc)</span></span></label>
+<details><summary>Draft reply (check with Sidd first)</summary><pre>Hi Niels,
+
+Thanks for the update, and for passing the documents on to Suncar. Please let us know once their log analysis gives a result. If they need anything further from our side, such as trace files, we can provide them.
+
+Kind regards,
+John</pre></details></li>
+<li><label><input type="checkbox" data-id="sam"><span><b>Software team notes and your action points (Thu 5 Nov).</b> Sam attached a PDF with your actions at the top and asks you to say if anything is missed. I could not open the PDF in this run.<br><span class="who">Sam Peach, 9 Nov</span></span></label>
+<details><summary>Draft reply</summary><pre>Hi Sam,
+
+Thanks for the notes. I have gone through my action points and they look right to me. I will [add any corrections here].
+
+Kind regards,
+John</pre></details></li>
+</ul></section>
+
+<section style="--c:var(--fyi)"><h2><i></i>FYI</h2><ul>
+<li><label><input type="checkbox" data-id="jira"><span><b>Jira: NE124-181 and NE124-182 assigned to you</b> (CAT 330Z battery). 181 is the W150Fi review on welded contactors not being detected. Archived.</span></label></li>
+<li><label><input type="checkbox" data-id="suncar"><span><b>Suncar Insight: machine event detected</b> (9 Nov). Automated, archived. An older one from 22 Oct was archived too.</span></label></li>
+<li><label><input type="checkbox" data-id="tldr"><span><b>TLDR, 3 issues from 9 Nov</b> (AI R&amp;D acceleration, X web app rebuild, Uber securing AI agents). Left in the inbox until they are 2 days old.</span></label></li>
+<li><label><input type="checkbox" data-id="chat"><span><b>Google Chat pings from Rogier</b> (3 and 4 Nov). Kept because they come from a person. Mark as addressed when you have replied.</span></label></li>
+<li><label><input type="checkbox" data-id="tldrkeep"><span><b>Kept TLDR issues:</b> 27 Oct "How Claude Code reviews code" and 3 Nov "Claude message threads". Possibly useful for your workflow.</span></label></li>
+</ul></section>
+
+<section style="--c:var(--low)"><h2><i></i>Low priority</h2><ul>
+<li><label><input type="checkbox" data-id="low"><span><b>Archived:</b> Atlassian Rovo prompts, Outline welcome email, Confluence weekly digest.</span></label></li>
+</ul></section>
+
+<section style="--c:var(--accent)"><h2><i></i>Backlog question for this session</h2><ul>
+<li><label><input type="checkbox" data-id="q1"><span><b>Do you still need the "CAN BUS sensors" email from Celso (Sept 2025)?</b> It links the Metis BES series datasheet. Reply "archive" or "keep", and I will clean it up next run. About 190 other inbox threads remain for later sessions.</span></label></li>
+</ul></section>
+<p class="note">Rule reminder: once you confirm a person's email is addressed, I mark it unread.</p>
+</main>
+<script>
+(async()=>{
+const boxes=[...document.querySelectorAll('input[data-id]')];
+const key=b=>b.dataset.id;
+let db=null;try{db=await claude.use('db')}catch(e){}
+const ls={get(){try{return JSON.parse(localStorage.getItem('ck')||'{}')}catch(e){return{}}},set(o){try{localStorage.setItem('ck',JSON.stringify(o))}catch(e){}}};
+const local=ls.get();boxes.forEach(b=>b.checked=!!local[key(b)]);
+if(db){
+ const col=db.collection('checks');
+ col.onSnapshot(s=>{s.docs.forEach(d=>{const b=boxes.find(x=>key(x)===d.id);if(b)b.checked=!!(d.data()||{}).done})},()=>{});
+}
+boxes.forEach(b=>b.addEventListener('change',()=>{
+ const o=ls.get();o[key(b)]=b.checked;ls.set(o);
+ if(db)db.collection('checks').doc(key(b)).set({done:b.checked}).catch(()=>{});
+}));
+})();
+</script>
