@@ -15,4 +15,4 @@ Each run reads this file first, applies pending answers, then updates it.
 - TLDR Dev 2026-10-27 (thread 1a17d295ed700b76): Claude Code code review + ESP32-S3 SIMD.
 
 ## Run log
-- 2026-11-11: first run. Bulk-archived automated mail >14 days; archived TLDR AI 2026-11-03.
+- 2026-11-11: first run. Archived 1,305 automated threads >14d (834 Jenkins, 192 calendar, 108 Zoho, 54 Odos, 49 Nmbrs, 22 NS, 21 Atlassian, misc) + TLDR AI 2026-11-03. Skipped (kept): 19d06a243df0e63b, 19b9da24eadb0e2e (Suncar support convos), 1934e268b10af7a9 (company party invite), 188567031778b34e, 180feb49360d834d (self-forwarded payslips).
