@@ -1,0 +1,168 @@
+<title>Inbox Triage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column, run header, then category sections of tick-off rows */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#1b1f27; --muted:#5d6676; --line:#dfe3ea;
+  --accent:#1f6feb; --urgent:#c4352b; --action:#b86e00; --fyi:#2f7d55; --low:#7a8394;
+  --done:#9aa3b2;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151b; --surface:#1a1e26; --fg:#e6e9ef; --muted:#9aa3b2; --line:#2b313c;
+  --accent:#6ea8ff; --urgent:#ff7b70; --action:#f0a83a; --fyi:#5cc28e; --low:#8b94a5; --done:#5d6676; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151b; --surface:#1a1e26; --fg:#e6e9ef; --muted:#9aa3b2; --line:#2b313c;
+  --accent:#6ea8ff; --urgent:#ff7b70; --action:#f0a83a; --fyi:#5cc28e; --low:#8b94a5; --done:#5d6676; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-direction:column;gap:6px}
+h1{font-size:26px;font-weight:600;margin:0;text-wrap:balance}
+.meta{font-family:var(--mono);font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 16px}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress>i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.save{font-family:var(--mono);font-size:12px;color:var(--muted);min-height:1em}
+section{display:flex;flex-direction:column;gap:10px}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:0;display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600}
+h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--c)}
+h2 .count{font-family:var(--mono);font-weight:400}
+.empty{color:var(--muted);font-size:14px;margin:0;padding:12px 14px;border:1px dashed var(--line);border-radius:8px}
+ul{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+li{border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+label.row{display:grid;grid-template-columns:22px 1fr;gap:12px;padding:12px 14px;cursor:pointer;align-items:start}
+label.row input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--accent);cursor:pointer}
+label.row input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.body{min-width:0;display:flex;flex-direction:column;gap:3px}
+.top{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+.from{font-weight:600}
+.date{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.subj{color:var(--muted);font-size:13.5px;overflow-wrap:anywhere}
+.sum{overflow-wrap:anywhere}
+.links{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+.links a{color:var(--accent);text-decoration:none}
+.links a:hover{text-decoration:underline}
+.draft{font-size:12.5px;font-family:var(--mono);color:var(--action)}
+li.done .from,li.done .sum{color:var(--done);text-decoration:line-through}
+li.done .subj{color:var(--done)}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.q p{margin:0;max-width:65ch}
+.q .opts{display:flex;flex-direction:column;gap:8px}
+.q .opts label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.q .opts input{margin-top:4px;accent-color:var(--accent)}
+.note{font-size:13.5px;color:var(--muted);margin:0;max-width:65ch}
+@media (prefers-reduced-motion:reduce){.progress>i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Inbox triage · Thu 12 Nov</h1>
+    <div class="meta"><span>24 unread reviewed</span><span>87 old automated threads archived</span><span>1 reply drafted</span></div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div class="save" id="save" aria-live="polite"></div>
+  </header>
+  <div id="sections"></div>
+  <section>
+    <h2><span class="dot" style="--c:var(--accent)"></span>Today's backlog question</h2>
+    <div class="q">
+      <p><strong>About 100+ inbox threads from people date from 2022–2024.</strong> None are unread. They include old supplier threads (Engiro, OBS, ePropulsion, IMK), team announcements (BBQ, party invites, office feedback) and cold sales mail from Alten. Are these all dealt with?</p>
+      <div class="opts" id="opts"></div>
+      <p class="note">Your answer saves with the page. The next run reads it and does the matching cleanup: archive all of them, archive only the cold sales and announcements, or leave them.</p>
+    </div>
+  </section>
+  <p class="note">Ticking a box only marks it here; it doesn't change Gmail. When you've dealt with a thread from a person, tick it and the next run will mark it read and archive it, as your routine asks.</p>
+</div>
+
+<script type="application/json" id="state">{"done":[],"answer":""}</script>
+<script>
+const SRC = document.body.innerHTML;
+const G = id => "https://mail.google.com/mail/?authuser=john@newelectric.nl#all/" + id;
+const CATS = [
+ {key:"urgent",name:"Urgent",c:"var(--urgent)",items:[]},
+ {key:"action",name:"Action needed",c:"var(--action)",items:[
+  {id:"jira-access",from:"Atlassian · Javier Franco",date:"10 Nov",subj:"Grant access to Jira? (2 requests)",sum:"Javier asked twice for Jira access for Adarsha, once as adasha@newelectric.nl (looks like a typo) and once as adarsha@newelectric.nl. Approve the right one and decline the other.",draft:"Draft reply to Javier, asking him to confirm the right address, is in Gmail Drafts.",links:[["Request 1","1a1c487416176fc1"],["Request 2","1a1c48e9cac8d444"]]},
+  {id:"jira-trial",from:"Atlassian",date:"10 Nov",subj:"Your new Jira Standard trial",sum:"A 14-day Jira Standard trial started on newelectric.atlassian.net. It converts to paid automatically on 24 Nov, est. USD 100/month. Keep it or cancel at admin.atlassian.com/billing before then. No reply needed.",links:[["Open","1a1c498021464377"]]},
+  {id:"sec-alert",from:"Google",date:"12 Nov 06:34 UTC",subj:"Security alert",sum:"New sign-in to your Google account from an Android device. If it wasn't you, secure the account. No reply needed.",links:[["Open","1a1ce76cbb5046f3"]]},
+  {id:"jira-weekly",from:"Jira",date:"10 Nov",subj:"Your weekly update for 10 Nov",sum:"Two items assigned to you haven't been updated recently: NEP007-77 Motor Controller integration and NEP006-101 Override \"Off\" not working. Update them in Jira. No reply needed.",links:[["Open","1a1c6d0ca051517b"]]}
+ ]},
+ {key:"fyi",name:"FYI",c:"var(--fyi)",items:[
+  {id:"zeppelin",from:"Niels van Gurp (Zeppelin)",date:"10 Nov",subj:"Re: 330 XNB20126 - Pack2 Precharge Timeout",sum:"Niels says the precharge write-up is clear. He has shared it with Suncar and will come back once they've checked their logs. Addressed to Sidd, so no reply from you is needed.",links:[["Open thread","1a1397b63c470ba9"]]},
+  {id:"jira-rogier",from:"Rogier van Rooijen (Jira)",date:"10 Nov",subj:"6 work item updates on NEP_007_W150Fi",sum:"NEP007-80 and -81 are Done. NEP007-79 (ceedling tests), -77 (motor controller) and -123 (no parking brake doc) moved to In Review. NEP007-114 Low Power Mode went back to To Do.",links:[["-79","1a158b5184605286"],["-80","1a15377f09ac75e4"],["-81","1a1c5b22a48fb3d4"],["-114","1a1c4fe103917f49"],["-123","1a1c4fdd3926d13d"],["-77","1a1c4c01925e2f77"]]},
+  {id:"atl-admin",from:"Atlassian",date:"12 Nov",subj:"Organisation admin access is now assigned directly",sum:"The org-admins group no longer grants admin rights. This only matters if scripts manage admins through that group. Check that the list of directly assigned admins is right.",links:[["Open","1a1cd5baf485569d"]]},
+  {id:"tldr-ai-11",from:"TLDR AI",date:"11 Nov",subj:"Gemini 4 Carbon, Claude Sheets, Antigravity Swarm",sum:"Gemini 4 Carbon is now open to all paying API developers. Also covers Claude Sheets and Antigravity Swarm agents.",links:[["Open","1a1cb2636ceb033a"]]},
+  {id:"tldr-dev-11",from:"TLDR Dev",date:"11 Nov",subj:"Gemini 4 Carbon, codebase rewrites, MCP vs CLI",sum:"Coding-focused issue: Gemini 4 Carbon for complex coding, a piece on full codebase rewrites, and MCP vs CLI security trade-offs.",links:[["Open","1a1caa9a571f8dcd"]]},
+  {id:"tldr-11",from:"TLDR",date:"11 Nov",subj:"Amazon security robots, Anthropic IPO price, modern web guidance",sum:"General tech digest: Ring drone cam, Anthropic IPO pricing, modern web guidance.",links:[["Open","1a1ca8625c683b43"]]},
+  {id:"tldr-ai-10",from:"TLDR AI",date:"10 Nov",subj:"Claude Fable 5.2, Meta Ember, Google's new TPUs",sum:"Anthropic released Fable 5.2 and Mythos 5.2, with better coding, reasoning and vision and up to 30% faster output.",links:[["Open","1a1c5f4eb8226ead"]]},
+  {id:"tldr-dev-10",from:"TLDR Dev",date:"10 Nov",subj:"Claude Fable 5.2, ultra-fast mobile framework, AI slop",sum:"1,000 coordinated agents reproduced a formal proof of Fermat's Last Theorem in 28.7 hours. A useful read on multi-agent setups with sandboxes and shared Git.",links:[["Open","1a1c577ddc5f5621"]]},
+  {id:"tldr-10",from:"TLDR",date:"10 Nov",subj:"Fable 5.2, Anthropic IPO next week, Storybook 11",sum:"General digest leading with Fable 5.2 and the upcoming Anthropic IPO.",links:[["Open","1a1c55c6c83c1724"]]},
+  {id:"tldr-dev-27",from:"TLDR Dev (kept from backlog)",date:"27 Oct",subj:"How Claude Code reviews code, timezone traps",sum:"Kept even though it's over 2 days old: the Claude Code team's code-review approach roughly doubled merged PRs and cut reverts by 40%. Relevant to your team's new workflow.",links:[["Open","1a17d295ed700b76"]]}
+ ]},
+ {key:"low",name:"Low priority",c:"var(--low)",items:[
+  {id:"cc-news",from:"Claude Code",date:"10 Nov",subj:"What's new in Claude Code: Fable 5.2, easier cloud setup",sum:"Product newsletter: Fable 5.2, easier cloud setup, disk-space and usage tools, ultrathink is back.",links:[["Open","1a1c6d4b08be68e7"]]},
+  {id:"atl-rovo",from:"Atlassian",date:"10 Nov",subj:"Your GitHub data in Rovo Search, Chat, and Agents",sum:"Notice about changes to how the GitHub for Atlassian app feeds data into Rovo.",links:[["Open","1a1c69c45ecb8bb6"]]},
+  {id:"can-sensors",from:"Celso Menaia",date:"10 Sep 2025",subj:"CAN BUS sensors",sum:"Old team email, still unread: links to Metis Engineering CAN sensors for detecting cell thermal runaway.",links:[["Open","1993278858b2361a"]]}
+ ]}
+];
+const OPTS = [
+ ["all","Yes, all handled. Mark read and archive them all."],
+ ["noise","Only the cold sales and team announcements. Keep the supplier and technical threads."],
+ ["keep","No, leave them for now."]
+];
+let state = JSON.parse(document.getElementById("state").textContent);
+let pub = null, saving = false, pending = false;
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function render(){
+  const total = CATS.reduce((n,c)=>n+c.items.length,0);
+  document.getElementById("bar").style.width = (total? state.done.length/total*100 : 0) + "%";
+  document.getElementById("sections").innerHTML = CATS.map(c => `
+   <section style="margin-bottom:24px">
+    <h2><span class="dot" style="--c:${c.c}"></span>${c.name}<span class="count">${c.items.length}</span></h2>
+    ${c.items.length ? `<ul>${c.items.map(it => {
+      const d = state.done.includes(it.id);
+      return `<li class="${d?"done":""}"><label class="row">
+        <input type="checkbox" id="cb-${it.id}" data-id="${it.id}" ${d?"checked":""}>
+        <span class="body">
+          <span class="top"><span class="from">${esc(it.from)}</span><span class="date">${esc(it.date)}</span></span>
+          <span class="subj">${esc(it.subj)}</span>
+          <span class="sum">${esc(it.sum)}</span>
+          ${it.draft?`<span class="draft">✎ ${esc(it.draft)}</span>`:""}
+          <span class="links">${it.links.map(l=>`<a href="${G(l[1])}" target="_blank" rel="noopener">${esc(l[0])} ↗</a>`).join("")}</span>
+        </span></label></li>`;}).join("")}</ul>`
+     : `<p class="empty">Nothing urgent today.</p>`}
+   </section>`).join("");
+  document.getElementById("opts").innerHTML = OPTS.map(o => `<label><input type="radio" name="ans" id="ans-${o[0]}" value="${o[0]}" ${state.answer===o[0]?"checked":""}><span>${o[1]}</span></label>`).join("");
+}
+function status(t){ document.getElementById("save").textContent = t; }
+async function persist(){
+  if(!pub){ status("Saved in this view only. Saving isn't available here."); return; }
+  if(saving){ pending = true; return; }
+  saving = true; status("Saving…");
+  const head = document.head.querySelector("style");
+  const reset = head ? head.textContent : "";
+  const body = SRC.replace(/(<script type="application\/json" id="state">)[\s\S]*?(<\/script>)/, (m,a,b)=> a + JSON.stringify(state).replace(/</g,"\\u003c") + b);
+  const html = '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + reset + '</style></head><body>' + body + '</body></html>';
+  try { await pub.publish(html); status("Saved"); }
+  catch(e){ status(e && e.code==="conflict" ? "Another save won. The page will reload." : "Couldn't save: " + (e && (e.message||e.code) || "unknown error")); }
+  saving = false;
+  if(pending){ pending = false; persist(); }
+}
+let timer = null;
+function queue(){ clearTimeout(timer); timer = setTimeout(persist, 900); }
+document.addEventListener("change", e => {
+  const t = e.target;
+  if(t.matches('input[type=checkbox][data-id]')){
+    const id = t.dataset.id;
+    state.done = t.checked ? [...new Set([...state.done,id])] : state.done.filter(x=>x!==id);
+    t.closest("li").classList.toggle("done", t.checked);
+    const total = CATS.reduce((n,c)=>n+c.items.length,0);
+    document.getElementById("bar").style.width = (state.done.length/total*100)+"%";
+    queue();
+  } else if(t.name==="ans"){ state.answer = t.value; queue(); }
+});
+render();
+if(window.claude && window.claude.use){
+  window.claude.use("artifact").then(a => { pub = a; }).catch(()=>{});
+}
+</script>
