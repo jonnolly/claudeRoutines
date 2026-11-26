@@ -1,0 +1,182 @@
+<title>Inbox Triage 26 Nov</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column, triage groups as stacked lists, checkbox at left edge of each row */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#1b2230; --muted:#5d6878; --line:#dde2ea;
+  --accent:#2f5fd0; --act:#b45309; --act-bg:#fdf2e3; --fyi:#2f5fd0; --fyi-bg:#e8eefc; --low:#6b7280; --low-bg:#eef0f3; --done:#15803d;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --surface:#1a2029; --fg:#e6e9ef; --muted:#9aa4b2; --line:#2b3340;
+  --accent:#7ea2ff; --act:#f0a35a; --act-bg:#3a2a17; --fyi:#7ea2ff; --fyi-bg:#1d2840; --low:#a0a7b3; --low-bg:#232a35; --done:#4ade80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --surface:#1a2029; --fg:#e6e9ef; --muted:#9aa4b2; --line:#2b3340;
+  --accent:#7ea2ff; --act:#f0a35a; --act-bg:#3a2a17; --fyi:#7ea2ff; --fyi-bg:#1d2840; --low:#a0a7b3; --low-bg:#232a35; --done:#4ade80; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-direction:column;gap:6px}
+h1{font-size:1.6rem;font-weight:600;margin:0;text-wrap:balance}
+.meta{color:var(--muted);font-size:.9rem;display:flex;flex-wrap:wrap;gap:4px 14px}
+.meta b{font-family:var(--mono);font-weight:500;color:var(--fg)}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress span{display:block;height:100%;width:0;background:var(--done);transition:width .25s}
+#sync{font-size:.8rem;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:10px}
+h2{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;margin:0;display:flex;align-items:center;gap:8px;color:var(--muted)}
+.pill{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:999px;letter-spacing:0;text-transform:none}
+.p-act{background:var(--act-bg);color:var(--act)} .p-fyi{background:var(--fyi-bg);color:var(--fyi)} .p-low{background:var(--low-bg);color:var(--low)}
+ul{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+li{display:grid;grid-template-columns:24px 1fr;gap:12px;padding:14px 16px;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+li input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--done);cursor:pointer}
+li input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.body{min-width:0;display:flex;flex-direction:column;gap:4px}
+.from{font-size:.8rem;color:var(--muted);font-family:var(--mono)}
+.sum{margin:0}
+li.checked .sum,li.checked .from{opacity:.5} li.checked .sum{text-decoration:line-through}
+details{margin-top:4px}
+summary{cursor:pointer;color:var(--accent);font-size:.88rem;font-weight:500}
+.draft{margin-top:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.note{font-size:.85rem;color:var(--muted)}
+a{color:var(--accent)}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.q p{margin:0}
+.q .list{font-size:.88rem;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{font:inherit;font-size:.9rem;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.opts button[aria-pressed=true]{border-color:var(--done);color:var(--done);font-weight:600}
+.opts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.done-list{font-size:.88rem;color:var(--muted);margin:0;padding-left:18px}
+@media (prefers-reduced-motion:reduce){.progress span{transition:none}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Inbox triage, Thu 26 Nov</h1>
+  <div class="meta"><span><b>25</b> unread reviewed</span><span><b>0</b> urgent</span><span><b>4</b> need action</span><span><b>6</b> archived</span><span><b>2</b> Gmail drafts ready</span></div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+  <div id="sync">Ticks are saved on this page.</div>
+</header>
+
+<section>
+  <h2>Urgent <span class="pill p-act">0</span></h2>
+  <p class="note">Nothing urgent today.</p>
+</section>
+
+<section>
+  <h2>Action needed <span class="pill p-act">4</span></h2>
+  <ul>
+    <li data-id="hvac-pr1"><input type="checkbox" id="c-hvac-pr1" aria-label="HVAC PR 1"><div class="body">
+      <span class="from">Adarsha · PR #1 + Google Chat · 25 Nov</span>
+      <p class="sum">Rogier approved Adarsha's Fans_PWM_control PR yesterday ("way more concise, better structure"). Adarsha pushed the last fixes (fan pins in hvac_io.c, a new hvac_fans_handler.c with tests) and asked you in chat to re-review. He's moved on to his next ticket, so the PR is waiting on you to approve and merge.</p>
+      <details><summary>Draft chat reply (paste in Google Chat)</summary><div class="draft">Hi Adarsha, thanks for working through all the review comments so quickly. Rogier has approved, and I'll do my final pass on PR #1 today. If nothing new comes up I'll approve and merge it. Nice work on your first feature!</div></details>
+    </div></li>
+    <li data-id="rogier-121"><input type="checkbox" id="c-rogier-121" aria-label="Rogier, NEP006-121"><div class="body">
+      <span class="from">Rogier van Rooijen · Google Chat · 24 Nov · carried over</span>
+      <p class="sum">Still open from yesterday. Rogier assigned you NEP006-121 (clarify all OBS errors and warnings) and asked if OBS has replied yet.</p>
+      <details><summary>Draft chat reply (paste in Google Chat)</summary><div class="draft">Hi Rogier, not yet. I'll chase OBS on NEP006-121 today and update the ticket with what they say. Thanks for fixing the low power mode logic. I'll go through Javi's updated requirements in Outline.</div></details>
+    </div></li>
+    <li data-id="domenico"><input type="checkbox" id="c-domenico" aria-label="Domenico artifact"><div class="body">
+      <span class="from">Domenico Motta · Zuyd · 24 Nov · carried over</span>
+      <p class="sum">Domenico can't open the Claude artifact on his school account and wants it shared to his personal Gmail. A reply is in your Gmail Drafts. Share the artifact first, then send it.</p>
+    </div></li>
+    <li data-id="ahmed"><input type="checkbox" id="c-ahmed" aria-label="Ahmed internship"><div class="body">
+      <span class="from">Ahmed Amine Sebti · 24 Nov · carried over</span>
+      <p class="sum">Ahmed followed up on his application for a 6-month embedded internship starting Feb or Mar 2027. A holding reply is in your Gmail Drafts.</p>
+    </div></li>
+  </ul>
+</section>
+
+<section>
+  <h2>FYI <span class="pill p-fyi">7</span></h2>
+  <ul>
+    <li data-id="cla"><input type="checkbox" id="c-cla" aria-label="CLA payment"><div class="body"><span class="from">Shahbaz · Finance · 25 Nov</span><p class="sum">Under the CLA you'll get a one-off gross payment of €132 in November (pro rata for part-time), so your payslip will look different this month.</p></div></li>
+    <li data-id="sam-chat"><input type="checkbox" id="c-sam-chat" aria-label="Sam chat"><div class="body"><span class="from">Sam Peach · Google Chat · 24 Nov</span><p class="sum">Sam replied "Hope everything is ok" to your holiday day request. Nothing more needed.</p></div></li>
+    <li data-id="nep007-133"><input type="checkbox" id="c-nep007-133" aria-label="NEP007-133"><div class="body"><span class="from">Jira · 23 Nov</span><p class="sum">Rogier changed the status of NEP007-133, the single plan for the OBS bench tests (OT1 to OT11).</p></div></li>
+    <li data-id="claude-ship"><input type="checkbox" id="c-claude-ship" aria-label="Claude Ship news"><div class="body"><span class="from">TLDR ×2 + Claude Code release notes · 24 Nov</span><p class="sum">Claude Code now has a /ship command and desktop themes. Worth a look for your agent PR workflow.</p></div></li>
+    <li data-id="tldr-mcp"><input type="checkbox" id="c-tldr-mcp" aria-label="TLDR skills in MCP"><div class="body"><span class="from">TLDR · 25 Nov</span><p class="sum">"100x engineers, Grok Bot reverse-engineered, skills in MCP servers". The piece on skills in MCP servers is relevant to how you use Claude.</p></div></li>
+    <li data-id="tldr-kept"><input type="checkbox" id="c-tldr-kept" aria-label="Kept TLDR"><div class="body"><span class="from">TLDR · kept from backlog</span><p class="sum">I kept three older issues as important news or useful for your work: "Anthropic solves Riemann" (23 Nov), "Anthropic's historic IPO" and "How Claude Code reviews code".</p></div></li>
+    <li data-id="celso-can"><input type="checkbox" id="c-celso-can" aria-label="CAN bus sensors"><div class="body"><span class="from">Celso Menaia · Sep 2025</span><p class="sum">Celso's links for CAN bus thermal runaway sensors (Honeywell BES, Metis Engineering). Still unread.</p></div></li>
+  </ul>
+</section>
+
+<section>
+  <h2>Low priority <span class="pill p-low">5</span></h2>
+  <ul>
+    <li data-id="tldr-25"><input type="checkbox" id="c-tldr-25" aria-label="TLDR 25 Nov"><div class="body"><span class="from">TLDR ×2 · 25 Nov</span><p class="sum">"OpenAI solves matrix math, SWE-2.1" and "Jensen's all hands, 2027 tech predictions". General news.</p></div></li>
+    <li data-id="tldr-24"><input type="checkbox" id="c-tldr-24" aria-label="TLDR 24 Nov"><div class="body"><span class="from">TLDR ×2 · 24 Nov</span><p class="sum">"Jensen Huang returns" and "GLM-5.4 loops". These get archived next run.</p></div></li>
+    <li data-id="zapier"><input type="checkbox" id="c-zapier" aria-label="Zapier"><div class="body"><span class="from">Zapier · 25 Nov</span><p class="sum">Challenge 2 of Zapier's course: save a prompt once and run it any day.</p></div></li>
+    <li data-id="jira-weekly"><input type="checkbox" id="c-jira-weekly" aria-label="Jira weekly"><div class="body"><span class="from">Jira · 24 Nov</span><p class="sum">Your Jira weekly summary.</p></div></li>
+    <li data-id="confluence"><input type="checkbox" id="c-confluence" aria-label="Confluence digest"><div class="body"><span class="from">Confluence · 24 Nov</span><p class="sum">The "your team is working on these pages" digest.</p></div></li>
+  </ul>
+</section>
+
+<section>
+  <h2>Today's backlog question</h2>
+  <div class="q">
+    <p>Carried over from yesterday, which had no answer: your inbox still has about 13 OBS Systems supplier threads from May to Aug 2026 (Gorrik, Ayosid, Celso). Have these been dealt with or moved into Jira under NEP006-121?</p>
+    <p class="list">The threads: DBC files and CAN variables · last firmware update issue · BMS stays in suspended mode · CMU communication intermittent · High voltage reading too high · Contactors not closing · missing variables · Open issues · Meeting · OBS-NE Jira collaboration · HVESP1D7 message · error and warning handling and HW questions · OBS test 13-07-2026</p>
+    <div class="opts" role="group" aria-label="Answer">
+      <button type="button" id="a-yes" data-answer="addressed" aria-pressed="false">Yes, all addressed</button>
+      <button type="button" id="a-keep" data-answer="keep" aria-pressed="false">Keep, I need them for NEP006-121</button>
+      <button type="button" id="a-some" data-answer="some" aria-pressed="false">Some; I'll tell you which</button>
+    </div>
+    <p class="note">What happens next run: if you answer "addressed", I'll mark them read and keep them in the inbox, since email from people stays. Your rule says "mark as unread"; I've taken it to mean "mark as read", so tell me if you meant it literally.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Cleared this run</h2>
+  <ul class="done-list" style="background:none;border:0">
+    <li style="display:list-item;padding:2px 0;border:0">Automated and resolved: bomBOM PRs #46 and #47, both approved and merged by Jorge.</li>
+    <li style="display:list-item;padding:2px 0;border:0">Newsletters over 2 days old: TLDR "Inkling 2 Mini, superintelligence" and "OpenAI publishes progress" (23 Nov).</li>
+    <li style="display:list-item;padding:2px 0;border:0">Automated mail over 2 weeks old: a Google security alert and the Atlassian "organisation admin access" notice.</li>
+  </ul>
+</section>
+</div>
+
+
+<script>
+(function(){
+  const DOC = "triage/2026-11-26";
+  const boxes = Array.from(document.querySelectorAll('li[data-id] input[type=checkbox]'));
+  const btns = Array.from(document.querySelectorAll('.opts button'));
+  const sync = document.getElementById('sync');
+  let state = {checked:{}, answer:null};
+  let ref = null, saving = Promise.resolve();
+
+  try{ const s = JSON.parse(localStorage.getItem(DOC)||"null"); if(s && s.checked) state = s; }catch(e){}
+
+  function render(){
+    let n = 0;
+    boxes.forEach(b=>{ const id=b.closest('li').dataset.id; const on=!!state.checked[id]; b.checked=on; b.closest('li').classList.toggle('checked',on); if(on) n++; });
+    document.getElementById('bar').style.width = (100*n/boxes.length)+'%';
+    btns.forEach(b=>b.setAttribute('aria-pressed', String(state.answer===b.dataset.answer)));
+  }
+  function save(){
+    try{ localStorage.setItem(DOC, JSON.stringify(state)); }catch(e){}
+    if(!ref) return;
+    const snapshot = JSON.parse(JSON.stringify(state));
+    saving = saving.then(()=>ref.set(snapshot)).then(()=>{ sync.textContent="Saved. The next run will see your ticks and answer."; }).catch(()=>{ sync.textContent="Couldn't save to the shared store. Your ticks are kept in this browser only."; });
+  }
+  boxes.forEach(b=>b.addEventListener('change',()=>{ state.checked[b.closest('li').dataset.id]=b.checked; render(); save(); }));
+  btns.forEach(b=>b.addEventListener('click',()=>{ state.answer = state.answer===b.dataset.answer ? null : b.dataset.answer; render(); save(); }));
+  render();
+
+  if(window.claude && window.claude.use){
+    window.claude.use("db").then(db=>{
+      if(!db){ sync.textContent="Ticks are saved in this browser only."; return; }
+      ref = db.doc(DOC);
+      const t = setTimeout(()=>{ sync.textContent="Can't reach saved ticks yet. Showing what this browser remembers."; },10000);
+      ref.onSnapshot(snap=>{
+        if(!snap.metadata || !snap.metadata.fromCache) clearTimeout(t);
+        if(snap.exists){ const d=snap.data(); state={checked:(d&&d.checked)||{}, answer:(d&&d.answer)||null}; render(); }
+        sync.textContent="Ticks are saved and shared with the next triage run.";
+      }, ()=>{ clearTimeout(t); sync.textContent="Saved ticks are unavailable. Your ticks are kept in this browser only."; });
+    });
+  }
+})();
+</script>
